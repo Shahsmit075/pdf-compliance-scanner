@@ -1,0 +1,34 @@
+# Web UI
+streamlit==1.35.0
+streamlit-authenticator==0.3.1
+
+# LangGraph Orchestration
+langgraph==0.2.14
+langchain-core>=0.2.27
+langchain-groq==0.1.6
+
+# AI Clients
+groq==0.9.0
+anthropic        # Optional: only if you later get Claude API
+
+# PDF Processing
+PyMuPDF==1.24.5          # fitz — fast, accurate PDF parser
+reportlab==4.2.0          # PDF report generation
+
+# Encoding & Language Detection
+chardet==5.2.0
+langdetect==1.0.9
+
+# Data Validation
+pydantic==2.7.0
+
+# Utilities
+python-dotenv==1.0.1
+tenacity==8.3.0           # Retry with exponential backoff
+
+# Testing
+pytest==8.2.2
+pytest-mock==3.14.0
+
+# Security
+bandit==1.7.9

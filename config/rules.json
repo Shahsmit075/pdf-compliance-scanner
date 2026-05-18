@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "sensitivity": "high",
+  "pii": {
+    "enabled": true,
+    "detect_email": true,
+    "detect_phone": true,
+    "detect_ssn_aadhaar": true,
+    "detect_credit_card": true,
+    "detect_address": true,
+    "detect_dob": true,
+    "min_confidence": 0.75,
+    "risk_threshold": "medium"
+  },
+  "confidentiality": {
+    "enabled": true,
+    "detect_api_keys": true,
+    "detect_passwords": true,
+    "detect_trade_secrets": true,
+    "detect_financial_data": true,
+    "detect_merger_acquisition": true,
+    "custom_keywords": [
+      "PROJECT TITAN",
+      "Operation Phoenix",
+      "internal use only",
+      "confidential",
+      "do not distribute"
+    ],
+    "min_confidence": 0.70
+  },
+  "encoding": {
+    "enabled": true,
+    "require_utf8": true,
+    "allowed_languages": ["en"],
+    "min_encoding_confidence": 0.85,
+    "flag_non_ascii": true,
+    "non_ascii_threshold": 5
+  },
+  "abuse": {
+    "enabled": true,
+    "detect_hate_speech": true,
+    "detect_sexual_content": true,
+    "detect_violence_incitement": true,
+    "detect_illegal_content": true,
+    "detect_harassment": true,
+    "sensitivity_level": "high",
+    "zero_tolerance_categories": ["child_safety", "terrorism"]
+  },
+  "reporting": {
+    "include_text_context": true,
+    "context_window_chars": 150,
+    "generate_pdf_report": true,
+    "generate_json_report": true
+  }
+}
