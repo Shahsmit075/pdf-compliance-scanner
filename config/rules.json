@@ -6,10 +6,10 @@
     "detect_email": true,
     "detect_phone": true,
     "detect_ssn_aadhaar": true,
-    "detect_credit_card": true,
+    "detect_credit_card": false,
     "detect_address": true,
-    "detect_dob": true,
-    "min_confidence": 0.75,
+    "detect_dob": false,
+    "min_confidence": 0.9,
     "risk_threshold": "medium"
   },
   "confidentiality": {
@@ -26,15 +26,17 @@
       "confidential",
       "do not distribute"
     ],
-    "min_confidence": 0.70
+    "min_confidence": 0.8
   },
   "encoding": {
     "enabled": true,
     "require_utf8": true,
-    "allowed_languages": ["en"],
-    "min_encoding_confidence": 0.85,
+    "allowed_languages": [
+      "en"
+    ],
+    "min_encoding_confidence": 0.6,
     "flag_non_ascii": true,
-    "non_ascii_threshold": 5
+    "non_ascii_threshold": 12
   },
   "abuse": {
     "enabled": true,
@@ -44,7 +46,10 @@
     "detect_illegal_content": true,
     "detect_harassment": true,
     "sensitivity_level": "high",
-    "zero_tolerance_categories": ["child_safety", "terrorism"]
+    "zero_tolerance_categories": [
+      "child_safety",
+      "terrorism"
+    ]
   },
   "reporting": {
     "include_text_context": true,
