@@ -1,0 +1,63 @@
+{
+  "version": "1.0",
+  "description": "Compliance rules for data source scanning (databases, cloud storage, warehouses)",
+
+  "column_classification": {
+    "enabled": true,
+    "use_ai_fallback": true,
+    "ai_confidence_threshold": 0.70,
+    "name_pattern_confidence_threshold": 0.75
+  },
+
+  "risk_thresholds": {
+    "critical_score": 50,
+    "high_score": 25,
+    "medium_score": 10
+  },
+
+  "scan_triggers": {
+    "on_new_table": true,
+    "on_new_column": true,
+    "on_type_change": true,
+    "on_row_count_spike_pct": 300,
+    "on_row_count_drop_pct": 80,
+    "initial_scan": true
+  },
+
+  "pii_categories": [
+    "PII_EMAIL", "PII_PHONE", "PII_NAME", "PII_ADDRESS",
+    "PII_DOB", "PII_SSN", "PII_PASSPORT", "PII_IP",
+    "PII_GENDER", "PII_RACE"
+  ],
+
+  "pci_categories": [
+    "PCI_CARD_NUMBER", "PCI_CVV", "PCI_EXPIRY"
+  ],
+
+  "phi_categories": [
+    "PHI_DIAGNOSIS", "PHI_MEDICATION", "PHI_LAB_RESULT", "PHI_MRN"
+  ],
+
+  "confidential_categories": [
+    "CONFIDENTIAL_SALARY", "CONFIDENTIAL_FINANCIAL",
+    "CONFIDENTIAL_PASSWORD", "CONFIDENTIAL_API_KEY",
+    "CONFIDENTIAL_CREDENTIALS"
+  ],
+
+  "alert_defaults": {
+    "trigger_on": ["critical", "high"],
+    "cooldown_minutes": 30
+  },
+
+  "reporting": {
+    "include_sample_evidence": false,
+    "context_window_chars": 0,
+    "generate_json_report": true
+  },
+
+  "data_retention": {
+    "keep_snapshots_days": 90,
+    "keep_scan_results_days": 180,
+    "keep_change_log_days": 365
+  }
+}
