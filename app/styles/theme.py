@@ -25,6 +25,42 @@ GLOBAL_CSS = """
 #MainMenu, header, footer {
     visibility: hidden !important;
 }
+/* Restore the sidebar reopen button — it lives inside header but must stay visible */
+[data-testid="collapsedControl"] {
+    visibility: visible !important;
+    display: flex !important;
+    align-items: center !important;
+}
+[data-testid="collapsedControl"] button {
+    visibility: visible !important;
+    background: #0A0A0A !important;
+    border: 1px solid var(--border) !important;
+    border-left: none !important;
+    border-radius: 0 2px 2px 0 !important;
+    cursor: pointer !important;
+    padding: 6px 10px !important;
+    transition: border-color 0.15s ease !important;
+}
+[data-testid="collapsedControl"] button:hover {
+    border-color: var(--amber) !important;
+}
+/* Hide the SVG inside the reopen button */
+[data-testid="collapsedControl"] button svg {
+    display: none !important;
+}
+/* Inject » as the reopen indicator (companion to « on the collapse side) */
+[data-testid="collapsedControl"] button::before {
+    content: "»";
+    font-family: 'Space Mono', monospace !important;
+    font-size: 18px !important;
+    color: var(--text-muted) !important;
+    line-height: 1 !important;
+    visibility: visible !important;
+}
+[data-testid="collapsedControl"] button:hover::before {
+    color: var(--amber) !important;
+}
+
 .block-container {
     padding-top: 1.5rem !important;
     max-width: 100% !important;
@@ -36,6 +72,7 @@ body, .stApp, .stApp * {
     font-family: 'DM Sans', sans-serif;
     color: var(--text);
 }
+
 
 /* ── 2. SIDEBAR STYLING ────────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {
@@ -67,6 +104,125 @@ section[data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked)
 }
 section[data-testid="stSidebar"] div[role="radiogroup"] label input {
     display: none;
+}
+
+/* ── FIX 1: Sidebar header — restore toggle button, remove leaked text ──────── */
+/* We now show the header (to restore collapse/expand button) but hide         */
+/* only the inner page-key text spans — these are already caught by the global */
+/* e1wbovuq1 rule below. The SVG icons are replaced with plain Unicode «.      */
+
+[data-testid="stSidebarHeader"] {
+    background: #0A0A0A !important;
+    border-bottom: 1px solid var(--border) !important;
+    min-height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 8px !important;
+}
+/* Hide any stray text inside the sidebar header (page name labels) */
+[data-testid="stSidebarHeader"] span,
+[data-testid="stSidebarHeader"] p {
+    display: none !important;
+}
+/* Hide the SVG arrow icons inside the collapse/expand button */
+[data-testid="stSidebarHeader"] button svg {
+    display: none !important;
+}
+/* Replace with plain Unicode character — « for collapse, always visible */
+[data-testid="stSidebarHeader"] button::before {
+    content: "«";
+    font-family: 'Space Mono', monospace !important;
+    font-size: 18px !important;
+    color: var(--text-muted) !important;
+    line-height: 1 !important;
+}
+[data-testid="stSidebarHeader"] button:hover::before {
+    color: var(--amber) !important;
+}
+/* Style the button itself */
+[data-testid="stSidebarHeader"] button {
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 6px 10px !important;
+    border-radius: 2px !important;
+    transition: color 0.15s ease !important;
+}
+
+
+
+/* ── BUG FIX 2 (GLOBAL): Hide "parc_" / "keyboard_c_" page-key prefix ────── */
+/* Root cause: Streamlit renders TWO elements in every expander summary:       */
+/*   • e1wbovuq1 span  → internal page-routing key ("parc_", "keyboard_c_")   */
+/*   • e1wbovuq4 <p>   → the actual user-supplied label text                   */
+/* Hiding e1wbovuq1 globally fixes ALL expanders across all pages.             */
+
+/* Hide internal page-key prefix span */
+[data-testid="stExpander"] details summary [class*="e1wbovuq1"],
+[data-testid="stExpander"] summary span[class*="e1wbovuq1"] {
+    display: none !important;
+}
+/* Hide the expand/collapse SVG arrow in all expanders */
+[data-testid="stExpander"] details summary svg {
+    display: none !important;
+}
+
+/* ── Sidebar API Config expander — also hide SVG arrow + re-inject label ──── */
+/* (sidebar expander needs special treatment since we hide all summary children) */
+section[data-testid="stSidebar"] [data-testid="stExpander"] details summary > * {
+    display: none !important;
+}
+section[data-testid="stSidebar"] [data-testid="stExpander"] details summary {
+    display: block !important;
+    cursor: pointer !important;
+}
+section[data-testid="stSidebar"] [data-testid="stExpander"] details summary::before {
+    content: "⚙️  API CONFIGURATION";
+    display: block !important;
+    font-size: 14px !important;
+    font-family: 'Space Mono', monospace !important;
+    letter-spacing: 0.08em !important;
+    color: var(--text) !important;
+    padding: 2px 0;
+}
+
+/* ── BUG FIX 3: Upload button — fix doubled "uploadupload" text ─────────── */
+/* Nuke the button text entirely then re-inject a single clean label          */
+[data-testid="stFileUploaderDropzone"] button,
+[data-testid="stFileUploaderDropzone"] button * {
+    font-size: 0 !important;
+    color: transparent !important;
+}
+[data-testid="stFileUploaderDropzone"] button::before {
+    content: "Browse Files";
+    font-size: 14px !important;
+    font-family: 'Space Mono', monospace !important;
+    letter-spacing: 0.08em !important;
+    color: var(--amber) !important;
+    text-transform: uppercase !important;
+}
+
+
+
+/* ── Sidebar opener button — small muted pill at top of main content ─────── */
+/* Targets the ☰ MENU button by its aria-label (Streamlit sets this from key) */
+button[aria-label="☰  MENU"],
+button[data-testid="_sb_open_btn"] {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-muted) !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 12px !important;
+    letter-spacing: 0.08em !important;
+    padding: 4px 12px !important;
+    border-radius: 2px !important;
+    margin-bottom: 12px !important;
+    transition: all 0.15s ease !important;
+}
+button[aria-label="☰  MENU"]:hover,
+button[data-testid="_sb_open_btn"]:hover {
+    border-color: var(--amber) !important;
+    color: var(--amber) !important;
 }
 
 /* ── 3. BUTTON STYLING ─────────────────────────────────────────────────── */

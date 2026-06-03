@@ -30,12 +30,15 @@ from app.components.ui import (
     loading_message,
     section_divider,
     render_common_sidebar,
+    render_sidebar_opener,
 )
 from app.components.sarcasm import get_stage_message, get_risk_quip, get_empty_state_quip
 
 st.set_page_config(page_title="Upload & Scan", page_icon="⬡", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 render_common_sidebar()
+render_sidebar_opener()
+
 
 # ── PAGE HEADER ────────────────────────────────────────────────────────────────
 st.markdown(textwrap.dedent("""

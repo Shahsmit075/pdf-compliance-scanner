@@ -20,10 +20,12 @@ st.set_page_config(
 
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
-from app.components.ui import render_common_sidebar
+from app.components.ui import render_common_sidebar, render_sidebar_opener
 
 # ── SIDEBAR ────────────────────────────────────────────────────────────────────
 render_common_sidebar()
+render_sidebar_opener()
+
 
 # ── HERO BANNER ────────────────────────────────────────────────────────────────
 st.markdown(textwrap.dedent("""

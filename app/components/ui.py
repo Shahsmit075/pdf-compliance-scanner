@@ -148,6 +148,45 @@ def scan_result_header(
     )
 
 
+def render_sidebar_opener():
+    """
+    Renders a ☰ MENU button that reopens the sidebar.
+    On click, injects JS (via same-origin iframe) that clicks the native
+    Streamlit sidebar toggle — the most reliable workaround since
+    st.switch_page() path resolution and st.rerun() both fail for this.
+    """
+    import streamlit as st
+    import streamlit.components.v1 as components
+
+    if st.button("☰  MENU", key="_sb_open_btn"):
+        st.session_state["_open_sidebar_js"] = True
+        st.rerun()
+
+    if st.session_state.pop("_open_sidebar_js", False):
+        # Inject JS into parent frame (same-origin) to click the sidebar toggle
+        components.html("""
+        <script>
+        (function() {
+            var doc = window.parent.document;
+            // Try the collapsedControl reopen button first
+            var btn = doc.querySelector('[data-testid="collapsedControl"] button');
+            // Fallback: sidebar header collapse/expand button
+            if (!btn) btn = doc.querySelector('[data-testid="stSidebarHeader"] button');
+            if (btn) {
+                btn.click();
+            } else {
+                // Retry after Streamlit has finished rendering
+                setTimeout(function() {
+                    var b = doc.querySelector('[data-testid="collapsedControl"] button')
+                           || doc.querySelector('[data-testid="stSidebarHeader"] button');
+                    if (b) b.click();
+                }, 300);
+            }
+        })();
+        </script>
+        """, height=0, scrolling=False)
+
+
 def render_common_sidebar():
     """Renders the standard Noir Amber sidebar branding and API settings expander."""
     import streamlit as st
@@ -166,7 +205,8 @@ def render_common_sidebar():
         </div>
         """), unsafe_allow_html=True)
 
-        with st.expander("⚙️ API CONFIGURATION", expanded=False):
+
+        with st.expander("⚙️  API CONFIGURATION", expanded=False):
             st.markdown("<div style='font-size:13px; color:var(--text-muted); margin-bottom:8px'>Override .env keys dynamically</div>", unsafe_allow_html=True)
             
             # Groq

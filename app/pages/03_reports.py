@@ -13,10 +13,14 @@ import textwrap
 from pathlib import Path
 from storage.database import get_all_scans, get_result, delete_scan
 from app.styles.theme import GLOBAL_CSS
-from app.components.ui import risk_badge, empty_state
+from app.components.ui import risk_badge, empty_state, render_sidebar_opener
 
 st.set_page_config(page_title="Scan Archive", page_icon="⚠", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+from app.components.ui import render_common_sidebar
+render_common_sidebar()
+render_sidebar_opener()
+
 
 # ── PAGE HEADER ────────────────────────────────────────────────────────────────
 st.markdown(textwrap.dedent("""
@@ -100,7 +104,6 @@ st.markdown(textwrap.dedent(f"""
 """), unsafe_allow_html=True)
 
 # ── SCAN CARDS ─────────────────────────────────────────────────────────────────
-risk_emoji_map = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}
 risk_color_map = {
     "critical": "var(--red)",
     "high": "var(--high)",
@@ -110,81 +113,92 @@ risk_color_map = {
 
 for scan in scans:
     risk = scan.get("highest_risk", "low")
-    r_emoji = risk_emoji_map.get(risk, "⚪")
     r_color = risk_color_map.get(risk, "var(--text-muted)")
     scan_date = scan.get("scanned_at", "")[:16]
     scan_id = scan.get("upload_id", "")
+    pdf_name_short = scan["pdf_name"][:40]
+    total_flags = scan.get("total_flags", 0)
+    state_key = f"open_{scan_id}"
 
-    # Date / ID label above expander
+    # Date / ID label above card
     st.markdown(textwrap.dedent(f"""
     <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:2px">
       {scan_date} · ID: {scan_id}
     </div>
     """), unsafe_allow_html=True)
 
-    pdf_name_short = scan["pdf_name"][:40]
-    total_flags = scan.get("total_flags", 0)
-
-    with st.expander(
-        f"{r_emoji}  {pdf_name_short}  —  {total_flags} flags  ·  {risk.upper()}"
+    # ── Custom toggle header (replaces st.expander — no arrow, no key leakage) ──
+    is_open = st.session_state.get(state_key, False)
+    indicator = "▲" if is_open else "▼"
+    if st.button(
+        f"[{risk.upper()}]  {pdf_name_short}  —  {total_flags} flags  {indicator}",
+        key=f"toggle_{scan_id}",
+        use_container_width=True,
     ):
-        # Metrics grid
-        st.markdown(textwrap.dedent(f"""
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:16px">
-          <div style="background:var(--surface);padding:12px">
-            <div class="caption-label" style="margin-bottom:4px">PAGES</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:23px;color:var(--ice)">{scan.get("total_pages", 0)}</div>
-          </div>
-          <div style="background:var(--surface);padding:12px">
-            <div class="caption-label" style="margin-bottom:4px">FLAGS</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:23px;color:var(--amber)">{total_flags}</div>
-          </div>
-          <div style="background:var(--surface);padding:12px">
-            <div class="caption-label" style="margin-bottom:4px">RISK LEVEL</div>
-            <div style="font-family:'Space Mono',monospace;font-size:17px;color:{r_color};font-weight:700">{risk.upper()}</div>
-          </div>
-          <div style="background:var(--surface);padding:12px">
-            <div class="caption-label" style="margin-bottom:4px">SCAN ID</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--text-muted)">{scan_id}</div>
-          </div>
-        </div>
-        """), unsafe_allow_html=True)
+        st.session_state[state_key] = not is_open
+        st.rerun()
 
-        # Download report PDF
-        report_path = scan.get("report_path")
-        if report_path and Path(report_path).exists():
-            with open(report_path, "rb") as f:
-                st.download_button(
-                    label="↓  DOWNLOAD COMPLIANCE REPORT",
-                    data=f.read(),
-                    file_name=f"compliance_{scan_id}.pdf",
-                    mime="application/pdf",
-                    key=f"dl_{scan_id}",
-                )
-        else:
-            st.markdown(textwrap.dedent("""
-            <div style="font-family:'Space Mono',monospace;font-size:14px;color:var(--medium);letter-spacing:0.06em;padding:8px 0">
-              ⚠ Report PDF not found (may have been deleted or moved)
+    # ── Card content shown when toggled open ────────────────────────────────────
+    if st.session_state.get(state_key, False):
+        with st.container():
+            # Metrics grid
+            st.markdown(textwrap.dedent(f"""
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:16px">
+              <div style="background:var(--surface);padding:12px">
+                <div class="caption-label" style="margin-bottom:4px">PAGES</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:23px;color:var(--ice)">{scan.get("total_pages", 0)}</div>
+              </div>
+              <div style="background:var(--surface);padding:12px">
+                <div class="caption-label" style="margin-bottom:4px">FLAGS</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:23px;color:var(--amber)">{total_flags}</div>
+              </div>
+              <div style="background:var(--surface);padding:12px">
+                <div class="caption-label" style="margin-bottom:4px">RISK LEVEL</div>
+                <div style="font-family:'Space Mono',monospace;font-size:17px;color:{r_color};font-weight:700">{risk.upper()}</div>
+              </div>
+              <div style="background:var(--surface);padding:12px">
+                <div class="caption-label" style="margin-bottom:4px">SCAN ID</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--text-muted)">{scan_id}</div>
+              </div>
             </div>
             """), unsafe_allow_html=True)
 
-        # Full result JSON toggle
-        full = get_result(scan_id)
-        if full and "data" in full:
-            show_json = st.toggle("Show Raw JSON Summary", key=f"json_{scan_id}")
-            if show_json:
-                st.json(full["data"].get("summary", {}))
+            # Download report PDF
+            report_path = scan.get("report_path")
+            if report_path and Path(report_path).exists():
+                with open(report_path, "rb") as f:
+                    st.download_button(
+                        label="DOWNLOAD COMPLIANCE REPORT",
+                        data=f.read(),
+                        file_name=f"compliance_{scan_id}.pdf",
+                        mime="application/pdf",
+                        key=f"dl_{scan_id}",
+                    )
+            else:
+                st.markdown(textwrap.dedent("""
+                <div style="font-family:'Space Mono',monospace;font-size:14px;color:var(--medium);letter-spacing:0.06em;padding:8px 0">
+                  REPORT PDF NOT FOUND (may have been deleted or moved)
+                </div>
+                """), unsafe_allow_html=True)
 
-        # Danger zone — delete
-        st.markdown(textwrap.dedent("""
-        <div style="height:1px;background:var(--border);margin:12px 0"></div>
-        <div class="caption-label" style="margin-bottom:6px;color:var(--red)">DANGER ZONE</div>
-        """), unsafe_allow_html=True)
+            # Full result JSON toggle
+            full = get_result(scan_id)
+            if full and "data" in full:
+                show_json = st.toggle("Show Raw JSON Summary", key=f"json_{scan_id}")
+                if show_json:
+                    st.json(full["data"].get("summary", {}))
 
-        if st.button("✕  DELETE SCAN", key=f"del_{scan_id}"):
-            delete_scan(scan_id)
-            st.toast("Scan deleted.", icon="🗑️")
-            st.rerun()
+            # Danger zone — delete
+            st.markdown(textwrap.dedent("""
+            <div style="height:1px;background:var(--border);margin:12px 0"></div>
+            <div class="caption-label" style="margin-bottom:6px;color:var(--red)">DANGER ZONE</div>
+            """), unsafe_allow_html=True)
+
+            if st.button("DELETE SCAN", key=f"del_{scan_id}"):
+                delete_scan(scan_id)
+                st.toast("Scan deleted.")
+                st.rerun()
 
     # Spacer between scan cards
     st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+
