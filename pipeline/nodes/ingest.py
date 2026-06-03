@@ -6,8 +6,10 @@ Handles text PDFs, detects image-only pages, captures encoding metadata.
 import fitz  # PyMuPDF
 import chardet
 from pipeline.state import PipelineState
+from langfuse import observe
 
 
+@observe(capture_input=False, capture_output=False)
 def ingest_node(state: PipelineState) -> dict:
     """
     Extract text page-by-page from uploaded PDF.

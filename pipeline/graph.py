@@ -12,6 +12,8 @@ from pipeline.nodes.encoding_guard import encoding_node
 from pipeline.nodes.abuse_detector import abuse_node
 from pipeline.nodes.aggregator import aggregator_node
 from pipeline.nodes.report_builder import report_node
+from langfuse import observe, get_client, propagate_attributes
+
 
 
 def build_pipeline() -> StateGraph:
@@ -60,9 +62,10 @@ def build_pipeline() -> StateGraph:
     return graph.compile()
 
 
-def run_pipeline(pdf_path: str, pdf_name: str, upload_id: str, compliance_rules: dict) -> dict:
+@observe(name="pdf-compliance-scan", capture_input=False, capture_output=False)
+def run_pipeline(pdf_path: str, pdf_name: str, upload_id: str, compliance_rules: dict):
     """
-    Convenience function to run the full compliance pipeline.
+    Convenience function to run the full compliance pipeline and yield iterative updates.
     
     Args:
         pdf_path: Path to uploaded PDF file
@@ -70,12 +73,14 @@ def run_pipeline(pdf_path: str, pdf_name: str, upload_id: str, compliance_rules:
         upload_id: Unique scan identifier
         compliance_rules: Rules dict from rules.json
     
-    Returns:
-        Final pipeline state with all results
+    Yields:
+        (node_name, current_state) tuples as each node completes.
     """
+    import time
+    import os
     pipeline = build_pipeline()
 
-    initial_state = {
+    current_state = {
         "pdf_path": pdf_path,
         "pdf_name": pdf_name,
         "upload_id": upload_id,
@@ -91,6 +96,35 @@ def run_pipeline(pdf_path: str, pdf_name: str, upload_id: str, compliance_rules:
         "report_path": None,
         "processing_complete": False,
         "errors": [],
+        
+        # Telemetry & Observability (NEW)
+        "start_time": time.time(),
+        "total_tokens_used": 0,
+        "scan_duration_seconds": 0.0,
+        "ai_provider_used": os.getenv("AI_PROVIDER", "groq"),
     }
 
-    return pipeline.invoke(initial_state)
+    # Propagate trace attributes like upload_id and metadata through context
+    with propagate_attributes(
+        session_id=upload_id,
+        metadata={"pdf_name": pdf_name},
+        tags=["compliance-scan"]
+    ):
+        # Stream yields a dict where the key is the node name and value is the state output
+        for output in pipeline.stream(current_state):
+            for node_name, state_update in output.items():
+                # Extract and sum up token counts from nodes
+                pii_tokens = state_update.pop("pii_tokens_used", 0)
+                conf_tokens = state_update.pop("confidential_tokens_used", 0)
+                abuse_tokens = state_update.pop("abuse_tokens_used", 0)
+                current_state["total_tokens_used"] += (pii_tokens + conf_tokens + abuse_tokens)
+                
+                current_state.update(state_update)
+                yield node_name, current_state
+
+    # Force flush events to ensure trace is sent immediately
+    try:
+        get_client().flush()
+    except Exception:
+        pass
+

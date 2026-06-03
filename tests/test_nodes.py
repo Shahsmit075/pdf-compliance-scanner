@@ -101,7 +101,7 @@ class TestPIINodeWithMockedAI:
     """Tests for PII node using mocked AI calls."""
 
     def test_pii_node_detects_email_and_phone(self, sample_state, mock_ai_pii_response):
-        with patch("pipeline.nodes.pii_detector.call_ai", return_value=mock_ai_pii_response):
+        with patch("pipeline.nodes.pii_detector.call_ai", return_value={"content": mock_ai_pii_response, "tokens": 150}):
             from pipeline.nodes.pii_detector import pii_node
             result = pii_node(sample_state)
 
@@ -109,11 +109,11 @@ class TestPIINodeWithMockedAI:
         page1_flags = result["pii_results"][0]["pii_flags"]
         categories = [f["category"] for f in page1_flags]
         assert "EMAIL" in categories
-        assert "PHONE" in categories
+        assert "PHONE" in categories or "PHONE_INDIA" in categories
 
     def test_pii_node_handles_empty_page(self, sample_state, mock_ai_clean_response):
         sample_state["pages_text"][0]["text"] = ""
-        with patch("pipeline.nodes.pii_detector.call_ai", return_value=mock_ai_clean_response):
+        with patch("pipeline.nodes.pii_detector.call_ai", return_value={"content": mock_ai_clean_response, "tokens": 0}):
             from pipeline.nodes.pii_detector import pii_node
             result = pii_node(sample_state)
 

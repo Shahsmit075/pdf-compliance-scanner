@@ -3,6 +3,11 @@
 Reports page — browse and download past compliance scan reports.
 Noir Amber UI redesign.
 """
+import sys
+import os
+# Inject project root path to allow absolute imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import streamlit as st
 import textwrap
 from pathlib import Path
@@ -10,7 +15,7 @@ from storage.database import get_all_scans, get_result, delete_scan
 from app.styles.theme import GLOBAL_CSS
 from app.components.ui import risk_badge, empty_state
 
-st.set_page_config(page_title="Scan Archive", page_icon="⚠", layout="wide")
+st.set_page_config(page_title="Scan Archive", page_icon="⚠", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ── PAGE HEADER ────────────────────────────────────────────────────────────────
@@ -42,9 +47,29 @@ if not scans:
     """), unsafe_allow_html=True)
     st.stop()
 
+# ── GLOBAL ANALYTICS DASHBOARD ─────────────────────────────────────────────────
+import pandas as pd
+df = pd.DataFrame(scans)
+if not df.empty and "scanned_at" in df.columns:
+    df["scanned_at"] = pd.to_datetime(df["scanned_at"])
+    df["date"] = df["scanned_at"].dt.date
+    
+    col_chart1, col_chart2 = st.columns(2)
+    with col_chart1:
+        st.markdown('<div class="caption-label" style="margin-bottom:8px">SCANS OVER TIME</div>', unsafe_allow_html=True)
+        timeline_df = df.groupby("date").size().reset_index(name="scans")
+        timeline_df.set_index("date", inplace=True)
+        st.bar_chart(timeline_df, use_container_width=True, height=200, color="#E8A838")
+        
+    with col_chart2:
+        st.markdown('<div class="caption-label" style="margin-bottom:8px">RISK DISTRIBUTION</div>', unsafe_allow_html=True)
+        risk_df = df.groupby("highest_risk").size().reset_index(name="count")
+        risk_df.set_index("highest_risk", inplace=True)
+        st.bar_chart(risk_df, use_container_width=True, height=200, color="#FF5F57")
+
 # ── TOTAL SCANS ────────────────────────────────────────────────────────────────
 st.markdown(textwrap.dedent(f"""
-<div style="display:inline-flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:12px 20px;margin-bottom:20px">
+<div style="display:inline-flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:12px 20px;margin-bottom:20px;margin-top:20px">
   <div class="caption-label">TOTAL SCANS</div>
   <div style="font-family:'JetBrains Mono',monospace;font-size:33px;font-weight:700;color:var(--amber)">{len(scans)}</div>
 </div>

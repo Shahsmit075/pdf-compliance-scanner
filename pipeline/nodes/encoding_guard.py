@@ -9,6 +9,8 @@ import re
 import unicodedata
 from langdetect import detect, LangDetectException
 from pipeline.state import PipelineState
+from langfuse import observe
+
 
 # ── OCR corruption indicators ─────────────────────────────────────────────────
 # These patterns appear when OCR misreads scanned text
@@ -90,6 +92,7 @@ def _non_ascii_count(text: str) -> tuple[int, list[str]]:
     return len(chars), [repr(c) for c in samples]
 
 
+@observe(capture_input=False, capture_output=False)
 def encoding_node(state: PipelineState) -> dict:
     """
     Rule-based encoding compliance checker.

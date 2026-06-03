@@ -41,7 +41,6 @@ body, .stApp, .stApp * {
 section[data-testid="stSidebar"] {
     background: #0A0A0A !important;
     border-right: 1px solid var(--border) !important;
-    width: 260px !important;
 }
 section[data-testid="stSidebar"] .stMarkdown h1,
 section[data-testid="stSidebar"] .stMarkdown h2,
@@ -116,7 +115,6 @@ section[data-testid="stSidebar"] div[role="radiogroup"] label input {
 .stFileUploader section span {
     color: var(--text-muted) !important;
     font-family: 'Space Mono', monospace !important;
-    font-size:15px !important;
 }
 
 /* ── 5. METRIC CARDS ───────────────────────────────────────────────────── */

@@ -72,3 +72,13 @@ class PipelineState(TypedDict):
     report_path: Optional[str]
     processing_complete: bool
     errors: List[str]
+
+    # Observability & Telemetry (NEW)
+    total_tokens_used: int
+    scan_duration_seconds: float
+    ai_provider_used: str
+    start_time: float
+    pii_tokens_used: int
+    confidential_tokens_used: int
+    abuse_tokens_used: int
+

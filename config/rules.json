@@ -2,7 +2,7 @@
   "version": "1.0",
   "sensitivity": "high",
   "pii": {
-    "enabled": true,
+    "enabled": false,
     "detect_email": true,
     "detect_phone": true,
     "detect_ssn_aadhaar": true,

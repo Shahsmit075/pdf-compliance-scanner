@@ -43,6 +43,19 @@ def init_db():
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_upload_id ON scans(upload_id)
         """)
+        
+        # Graceful migrations for new columns
+        for col_name, col_type in [
+            ("total_tokens", "INTEGER DEFAULT 0"),
+            ("execution_time_sec", "REAL DEFAULT 0.0"),
+            ("ai_provider", "TEXT DEFAULT 'groq'")
+        ]:
+            try:
+                conn.execute(f"ALTER TABLE scans ADD COLUMN {col_name} {col_type}")
+            except sqlite3.OperationalError:
+                # Column already exists
+                pass
+
         conn.commit()
 
 
@@ -55,8 +68,9 @@ def save_result(upload_id: str, pdf_name: str, result: dict) -> None:
         conn.execute("""
             INSERT OR REPLACE INTO scans
             (upload_id, pdf_name, scanned_at, total_pages, total_flags, 
-             highest_risk, status, result_json, report_path)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+             highest_risk, status, result_json, report_path,
+             total_tokens, execution_time_sec, ai_provider)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             upload_id,
             pdf_name,
@@ -67,6 +81,9 @@ def save_result(upload_id: str, pdf_name: str, result: dict) -> None:
             "completed",
             json.dumps(result),  # Store full result as JSON
             result.get("report_path"),
+            result.get("total_tokens_used", 0),
+            result.get("scan_duration_seconds", 0.0),
+            result.get("ai_provider_used", "groq"),
         ))
         conn.commit()
 
@@ -94,7 +111,8 @@ def get_all_scans() -> list:
     with get_connection() as conn:
         rows = conn.execute("""
             SELECT upload_id, pdf_name, scanned_at, total_pages, 
-                   total_flags, highest_risk, status, report_path
+                   total_flags, highest_risk, status, report_path,
+                   total_tokens, execution_time_sec, ai_provider
             FROM scans 
             ORDER BY scanned_at DESC 
             LIMIT 50

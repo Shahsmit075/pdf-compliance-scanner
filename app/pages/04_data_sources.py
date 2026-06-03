@@ -14,7 +14,7 @@ from storage.database import DataSourceDB, init_ds_db
 from connectors.factory import ConnectorFactory, CONNECTOR_META, CONNECTOR_FIELDS, SECRET_FIELDS
 from app.styles.theme import GLOBAL_CSS
 
-st.set_page_config(page_title="Data Sources", page_icon="🔌", layout="wide")
+st.set_page_config(page_title="Data Sources", page_icon="🔌", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # Ensure tables exist
