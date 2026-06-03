@@ -29,11 +29,13 @@ from app.components.ui import (
     scan_result_header,
     loading_message,
     section_divider,
+    render_common_sidebar,
 )
 from app.components.sarcasm import get_stage_message, get_risk_quip, get_empty_state_quip
 
-st.set_page_config(page_title="Upload & Scan", page_icon="⬡", layout="wide")
+st.set_page_config(page_title="Upload & Scan", page_icon="⬡", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+render_common_sidebar()
 
 # ── PAGE HEADER ────────────────────────────────────────────────────────────────
 st.markdown(textwrap.dedent("""
@@ -169,15 +171,15 @@ st.markdown(textwrap.dedent(f"""
 # ── SCAN BUTTON ────────────────────────────────────────────────────────────────
 st.markdown('<div class="caption-label" style="margin-bottom:8px">INITIATE SCAN</div>', unsafe_allow_html=True)
 
-col_btn, col_info = st.columns([1, 3])
-with col_btn:
-    scan_btn = st.button("▶  RUN COMPLIANCE SCAN", type="primary", use_container_width=True)
+col_info, col_btn = st.columns([3, 1])
 with col_info:
     st.markdown(textwrap.dedent("""
-    <div style="font-family:'Space Mono',monospace; font-size:13px; color:var(--text-muted); padding-top:8px; letter-spacing:0.05em">
+    <div style="font-family:'Space Mono',monospace; font-size:13px; color:var(--text-muted); padding-top:8px; letter-spacing:0.05em; text-align:right">
       DETECTION: regex + ai · ESTIMATED: 2–5s/page
     </div>
     """), unsafe_allow_html=True)
+with col_btn:
+    scan_btn = st.button("▶  RUN COMPLIANCE SCAN", type="primary", use_container_width=True)
 
 # ── RUN SCAN ───────────────────────────────────────────────────────────────────
 if scan_btn:

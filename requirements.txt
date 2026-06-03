@@ -1,75 +1,69 @@
 # Web UI
-streamlit==1.35.0
+streamlit>=1.55.0,<2.0.0
 streamlit-authenticator==0.3.1
 
 # Observability & Analytics
-langfuse>=2.0.0           # LLM tracing — cloud + local
-pandas>=2.0.0             # Analytics dashboard dataframes
+langfuse>=2.0.0,<5.0.0          # LLM tracing — cloud + local
+pandas>=2.0.0,<3.0.0            # Analytics dashboard dataframes
 
 # LangGraph Orchestration
-langgraph==0.2.14
-langchain-core>=0.2.27
-langchain-groq==0.1.6
+langgraph>=1.1.0,<2.0.0
+langchain-core>=0.2.27,<2.0.0
+langchain-groq>=0.1.6,<2.0.0
 
 # AI Clients
-groq==0.9.0
-anthropic        # Optional: Claude API
+groq>=0.9.0,<1.0.0
+anthropic>=0.25.0,<1.0.0        # Optional: Claude API
 
 # PDF Processing
-PyMuPDF==1.24.5          # fitz — fast, accurate PDF parser
-reportlab==4.2.0          # PDF report generation
+PyMuPDF>=1.24.5,<2.0.0          # fitz — fast, accurate PDF parser
+reportlab>=4.2.0,<5.0.0         # PDF report generation
 
 # Encoding & Language Detection
-chardet==5.2.0
-langdetect==1.0.9
+chardet>=5.2.0,<6.0.0
+langdetect>=1.0.9,<2.0.0
 
 # Data Validation
-pydantic==2.7.0
+pydantic>=2.7.0,<3.0.0
 
 # Utilities
-python-dotenv==1.0.1
-tenacity==8.3.0           # Retry with exponential backoff
+python-dotenv>=1.2.2,<2.0.0
+tenacity>=8.3.0,<9.0.0          # Retry with exponential backoff
 
 # Testing
-pytest==8.2.2
-pytest-mock==3.14.0
+pytest>=9.0.3,<10.0.0
+pytest-mock>=3.14.0,<4.0.0
 
 # Security
-bandit==1.7.9
+bandit>=1.7.9,<2.0.0
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Data Source Connectors (install only what you use — lazy-loaded)
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Database Connectors
-psycopg2-binary            # PostgreSQL
-pymysql                    # MySQL
-pymongo                    # MongoDB
-pyodbc                     # SQL Server (requires unixODBC on macOS: brew install unixodbc)
+psycopg2-binary>=2.9.0,<3.0.0           # PostgreSQL
+pymysql>=1.0.0,<2.0.0                   # MySQL
+pymongo>=4.0.0,<5.0.0                   # MongoDB
+pyodbc>=5.0.0,<6.0.0                    # SQL Server (requires unixODBC on macOS: brew install unixodbc)
 
 # Cloud Storage Connectors
-boto3                      # AWS S3 + Secrets Manager
-azure-storage-file-datalake # Azure ADLS Gen2
-google-cloud-storage        # Google Cloud Storage
+boto3>=1.26.0,<2.0.0                    # AWS S3 + Secrets Manager
+azure-storage-file-datalake>=12.0.0,<13.0.0 # Azure ADLS Gen2
+google-cloud-storage>=2.0.0,<4.0.0       # Google Cloud Storage
 
 # Data Warehouse Connectors
-snowflake-connector-python  # Snowflake
-google-cloud-bigquery       # BigQuery
-databricks-sql-connector    # Databricks
+snowflake-connector-python>=3.0.0,<5.0.0 # Snowflake
+google-cloud-bigquery>=3.0.0,<5.0.0      # BigQuery
+databricks-sql-connector>=3.0.0,<5.0.0   # Databricks
 
 # ─────────────────────────────────────────────────────────────────────────────
 # RAG & Vector Store
 # ─────────────────────────────────────────────────────────────────────────────
-chromadb                   # Vector store (requires sqlite3 >= 3.35)
-sentence-transformers      # Local embeddings (optional — ChromaDB uses its own by default)
+chromadb>=0.3.0,<2.0.0                  # Vector store (requires sqlite3 >= 3.35)
+sentence-transformers>=2.2.0,<6.0.0     # Local embeddings (optional — ChromaDB uses its own by default)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Analytics & Visualization
 # ─────────────────────────────────────────────────────────────────────────────
-plotly                     # Interactive charts on Module 06
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Secret Manager (optional production dependencies)
-# ─────────────────────────────────────────────────────────────────────────────
-# hvac                     # HashiCorp Vault (uncomment if using Vault)
-
+plotly>=5.0.0,<7.0.0                    # Interactive charts on Module 06

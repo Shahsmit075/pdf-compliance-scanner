@@ -15,7 +15,7 @@ from storage.database import get_all_scans
 from app.styles.theme import GLOBAL_CSS
 from app.components.ui import metric_grid, empty_state, section_divider
 
-st.set_page_config(page_title="Telemetry & Analytics", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Telemetry & Analytics", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ── PAGE HEADER ────────────────────────────────────────────────────────────────

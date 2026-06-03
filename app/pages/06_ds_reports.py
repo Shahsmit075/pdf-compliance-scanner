@@ -19,7 +19,7 @@ try:
 except ImportError:
     HAS_PLOTLY = False
 
-st.set_page_config(page_title="Source Analytics", page_icon="◈", layout="wide")
+st.set_page_config(page_title="Source Analytics", page_icon="◈", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 init_ds_db()
 

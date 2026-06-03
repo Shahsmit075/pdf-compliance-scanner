@@ -20,54 +20,10 @@ st.set_page_config(
 
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
+from app.components.ui import render_common_sidebar
+
 # ── SIDEBAR ────────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown(textwrap.dedent("""
-    <div style="padding: 4px 0 20px">
-      <div style="font-family:'Space Mono',monospace; font-size:21px; font-weight:700; color:var(--amber); letter-spacing:0.05em; margin-bottom:4px">
-        COMPLIANCE<br>SCANNER
-      </div>
-      <div style="font-family:'Space Mono',monospace; font-size:10px; color:var(--text-muted); letter-spacing:0.05em; text-transform:uppercase">
-        AI-Powered Document Compliance Guard
-      </div>
-    </div>
-    """), unsafe_allow_html=True)
-
-    with st.expander("⚙️ API CONFIGURATION", expanded=False):
-        import os
-        st.markdown("<div style='font-size:13px; color:var(--text-muted); margin-bottom:8px'>Override .env keys dynamically</div>", unsafe_allow_html=True)
-        
-        # Groq
-        groq_key = st.text_input("Groq API Key", value=os.environ.get("GROQ_API_KEY", ""), type="password", help="Required for Llama3 models")
-        if groq_key:
-            os.environ["GROQ_API_KEY"] = groq_key
-            
-        # Gemini
-        gemini_key = st.text_input("Gemini API Key", value=os.environ.get("GOOGLE_API_KEY", ""), type="password", help="Required if AI_PROVIDER=gemini")
-        if gemini_key:
-            os.environ["GOOGLE_API_KEY"] = gemini_key
-            
-        # Anthropic
-        anthropic_key = st.text_input("Anthropic API Key", value=os.environ.get("ANTHROPIC_API_KEY", ""), type="password", help="Required if AI_PROVIDER=anthropic")
-        if anthropic_key:
-            os.environ["ANTHROPIC_API_KEY"] = anthropic_key
-
-    st.markdown(textwrap.dedent("""
-    <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
-    <div class="caption-label" style="margin-bottom:10px">PIPELINE STACK</div>
-    <div style="font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-muted); line-height:1.9">
-      Groq Llama 3<br>
-      LangGraph DAG<br>
-      PyMuPDF · ReportLab<br>
-      ChromaDB RAG<br>
-      SQLite Storage
-    </div>
-    <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
-    <div style="font-family:'Space Mono',monospace; font-size:11px; color:#3A3A3A; letter-spacing:0.1em">
-      PDF · DB · S3 · WAREHOUSE<br>
-      ALL SYSTEMS OPERATIONAL
-    </div>
-    """), unsafe_allow_html=True)
+render_common_sidebar()
 
 # ── HERO BANNER ────────────────────────────────────────────────────────────────
 st.markdown(textwrap.dedent("""

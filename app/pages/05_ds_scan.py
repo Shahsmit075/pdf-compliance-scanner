@@ -13,7 +13,7 @@ from storage.database import DataSourceDB, init_ds_db
 from connectors.factory import CONNECTOR_META
 from app.styles.theme import GLOBAL_CSS
 
-st.set_page_config(page_title="Data Source Scan", page_icon="⬡", layout="wide")
+st.set_page_config(page_title="Data Source Scan", page_icon="⬡", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 init_ds_db()
 

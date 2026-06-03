@@ -10,9 +10,11 @@ from datetime import datetime
 from app.styles.theme import GLOBAL_CSS
 from storage.database import DataSourceDB, init_ds_db
 from connectors.factory import CONNECTOR_META
+from app.components.ui import render_common_sidebar
 
-st.set_page_config(page_title="AI Copilot", page_icon="⟁", layout="wide")
+st.set_page_config(page_title="AI Copilot", page_icon="⟁", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+render_common_sidebar()
 init_ds_db()
 
 # ── EXTRA COPILOT STYLES ───────────────────────────────────────────────────────
@@ -122,6 +124,9 @@ SUGGESTED = [
 if "copilot_messages" not in st.session_state:
     st.session_state.copilot_messages = []
 
+if "copilot_input_value" not in st.session_state:
+    st.session_state.copilot_input_value = ""
+
 if not st.session_state.copilot_messages:
     st.markdown('<div class="caption-label" style="margin-bottom:6px">SUGGESTED QUESTIONS</div>', unsafe_allow_html=True)
     chips_html = "".join(
@@ -134,7 +139,7 @@ if not st.session_state.copilot_messages:
     for i, q in enumerate(SUGGESTED):
         with cols[i % 3]:
             if st.button(q, key=f"suggest_{i}", use_container_width=True):
-                st.session_state.copilot_messages.append({"role": "user", "content": q})
+                st.session_state.copilot_input_value = q
                 st.rerun()
 
 # ── CHAT HISTORY ───────────────────────────────────────────────────────────────
@@ -238,19 +243,25 @@ Your personality: Professional but direct. You don't sugarcoat compliance risks.
             context_block += f"\n\n## Current System State\n{db_context}"
 
         user_message = f"Question: {question}{context_block}"
-        return call_ai(system_prompt=system_prompt, user_message=user_message, max_tokens=800)
+        ai_resp = call_ai(system_prompt=system_prompt, user_message=user_message, max_tokens=800)
+        if isinstance(ai_resp, dict):
+            return ai_resp.get("content", "")
+        return str(ai_resp)
 
     except Exception as e:
+        error_msg = f"Error details: {e}"
         if db_context:
             return (
-                f"⚠ *AI provider unavailable.* Based on available data:\n\n"
+                f"⚠ *AI provider unavailable.* ({error_msg})\n\n"
+                f"Based on available database context:\n\n"
                 f"{db_context}\n\n"
-                f"Configure an AI provider (Groq/Gemini/Anthropic) in Settings for full copilot capability."
+                f"Please verify your API key and AI provider in the sidebar configuration."
             )
         return (
-            "⚠ AI provider not configured. "
-            "Set up an API key in the Settings page to use the Copilot. "
-            "Run scans first to populate the knowledge base."
+            f"⚠ *AI provider not configured or unavailable.*\n\n"
+            f"({error_msg})\n\n"
+            f"Please set up a valid API key in the sidebar configuration to use the Copilot, "
+            f"and make sure you have run at least one compliance scan to index context documents."
         )
 
 
@@ -259,6 +270,7 @@ with st.form("copilot_form", clear_on_submit=True):
     with col_input:
         user_input = st.text_input(
             "Ask Copilot",
+            value=st.session_state.copilot_input_value,
             placeholder="e.g. What PII columns were found in my Postgres source?",
             label_visibility="collapsed",
         )
@@ -269,6 +281,7 @@ with st.form("copilot_form", clear_on_submit=True):
 if submitted and user_input.strip():
     user_q = user_input.strip()
     st.session_state.copilot_messages.append({"role": "user", "content": user_q})
+    st.session_state.copilot_input_value = ""
 
     with st.spinner("⟁ Thinking…"):
         answer = _get_copilot_answer(user_q, context_source_id)

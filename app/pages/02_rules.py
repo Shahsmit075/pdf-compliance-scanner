@@ -14,7 +14,7 @@ import textwrap
 from config.rules import load_rules, save_rules
 from app.styles.theme import GLOBAL_CSS
 
-st.set_page_config(page_title="Detection Rules", page_icon="⟁", layout="wide")
+st.set_page_config(page_title="Detection Rules", page_icon="⟁", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
 # ── PAGE HEADER ────────────────────────────────────────────────────────────────
