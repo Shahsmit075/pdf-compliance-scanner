@@ -68,6 +68,24 @@ section[data-testid="stSidebar"] div[role="radiogroup"] label:has(input:checked)
 section[data-testid="stSidebar"] div[role="radiogroup"] label input {
     display: none;
 }
+/* Fix broken Material icon font rendering on Streamlit Cloud — hide the raw text */
+[data-testid="stSidebarCollapseButton"] span,
+[data-testid="stSidebarCollapsedControl"] span {
+    font-size: 0 !important;
+    visibility: hidden !important;
+}
+[data-testid="stSidebarCollapseButton"] button::before {
+    content: '←' !important;
+    font-size: 16px !important;
+    color: var(--text-muted);
+    visibility: visible !important;
+}
+[data-testid="stSidebarCollapsedControl"] button::before {
+    content: '→' !important;
+    font-size: 16px !important;
+    color: var(--text-muted);
+    visibility: visible !important;
+}
 
 /* ── 3. BUTTON STYLING ─────────────────────────────────────────────────── */
 .stButton > button {
@@ -99,22 +117,59 @@ section[data-testid="stSidebar"] div[role="radiogroup"] label input {
 }
 
 /* ── 4. FILE UPLOADER ──────────────────────────────────────────────────── */
+/* The drop zone wrapper */
+[data-testid="stFileUploader"] > section,
 .stFileUploader section {
     border: 2px dashed var(--border-bright) !important;
     background: var(--surface) !important;
     border-radius: 4px !important;
-    padding: 32px !important;
+    padding: 28px 24px !important;
     text-align: center !important;
     transition: border-color 0.2s ease !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
 }
+[data-testid="stFileUploader"] > section:hover,
 .stFileUploader section:hover {
     border-color: var(--amber) !important;
     background: rgba(232,168,56,0.03) !important;
 }
-.stFileUploader section small,
-.stFileUploader section span {
+/* Drag-and-drop instruction text */
+[data-testid="stFileUploader"] > section > div,
+.stFileUploader section > div {
     color: var(--text-muted) !important;
     font-family: 'Space Mono', monospace !important;
+    font-size: 13px !important;
+    letter-spacing: 0.06em !important;
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+}
+/* File size hint text */
+.stFileUploader section small,
+.stFileUploader section span,
+[data-testid="stFileUploader"] section small {
+    color: var(--text-muted) !important;
+    font-family: 'Space Mono', monospace !important;
+    display: block !important;
+}
+/* Upload button inside file uploader — keep it visible and separated */
+[data-testid="stFileUploader"] button,
+.stFileUploader section button {
+    margin-top: 8px !important;
+    background: transparent !important;
+    border: 1px solid var(--amber) !important;
+    color: var(--amber) !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 13px !important;
+    letter-spacing: 0.08em !important;
+    padding: 6px 18px !important;
+    border-radius: 2px !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+    position: static !important;
 }
 
 /* ── 5. METRIC CARDS ───────────────────────────────────────────────────── */
@@ -541,6 +596,14 @@ a[data-testid="stPageLink-NavLink"]:hover {
 .stTabs [aria-selected="true"] {
     color: var(--amber) !important;
     border-bottom-color: var(--amber) !important;
+}
+
+/* ── PLOTLY CHART CONTAINER ──────────────────────────────────────────── */
+.stPlotlyChart > div,
+[data-testid="stPlotlyChart"] {
+    background: #141414 !important;
+    border: 1px solid #2A2A2A !important;
+    border-radius: 4px !important;
 }
 
 /* THEME v2.0 — NOIR AMBER — PDF COMPLIANCE SCANNER */

@@ -47,8 +47,26 @@ if not scans:
     """), unsafe_allow_html=True)
     st.stop()
 
-# ── GLOBAL ANALYTICS DASHBOARD ─────────────────────────────────────────────────
+# ── GLOBAL ANALYTICS DASHBOARD ───────────────────────────────────────────
 import pandas as pd
+import plotly.graph_objects as go
+
+def _noir_bar(x_vals, y_vals, colors, height=200):
+    """Plotly bar chart styled for Noir Amber dark theme."""
+    fig = go.Figure(go.Bar(
+        x=x_vals, y=y_vals,
+        marker_color=colors,
+        marker_line_color="rgba(0,0,0,0)",
+    ))
+    fig.update_layout(
+        paper_bgcolor="#141414", plot_bgcolor="#141414",
+        font=dict(family="'Space Mono', monospace", color="#7A7A7A", size=10),
+        margin=dict(l=0, r=0, t=8, b=0), height=height, showlegend=False,
+        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(color="#7A7A7A", size=10), linecolor="#2A2A2A"),
+        yaxis=dict(showgrid=True, gridcolor="#2A2A2A", zeroline=False, tickfont=dict(color="#7A7A7A", size=10), linecolor="#2A2A2A"),
+    )
+    return fig
+
 df = pd.DataFrame(scans)
 if not df.empty and "scanned_at" in df.columns:
     df["scanned_at"] = pd.to_datetime(df["scanned_at"])
@@ -58,14 +76,20 @@ if not df.empty and "scanned_at" in df.columns:
     with col_chart1:
         st.markdown('<div class="caption-label" style="margin-bottom:8px">SCANS OVER TIME</div>', unsafe_allow_html=True)
         timeline_df = df.groupby("date").size().reset_index(name="scans")
-        timeline_df.set_index("date", inplace=True)
-        st.bar_chart(timeline_df, use_container_width=True, height=200, color="#E8A838")
+        st.plotly_chart(
+            _noir_bar([str(d) for d in timeline_df["date"]], timeline_df["scans"], colors="#E8A838"),
+            use_container_width=True, config={"displayModeBar": False}
+        )
         
     with col_chart2:
         st.markdown('<div class="caption-label" style="margin-bottom:8px">RISK DISTRIBUTION</div>', unsafe_allow_html=True)
         risk_df = df.groupby("highest_risk").size().reset_index(name="count")
-        risk_df.set_index("highest_risk", inplace=True)
-        st.bar_chart(risk_df, use_container_width=True, height=200, color="#FF5F57")
+        risk_colors_map = {"low": "#4FD180", "medium": "#E8C838", "high": "#FF8C42", "critical": "#FF4545"}
+        bar_colors = [risk_colors_map.get(str(r), "#E8A838") for r in risk_df["highest_risk"]]
+        st.plotly_chart(
+            _noir_bar(risk_df["highest_risk"].astype(str), risk_df["count"], colors=bar_colors),
+            use_container_width=True, config={"displayModeBar": False}
+        )
 
 # ── TOTAL SCANS ────────────────────────────────────────────────────────────────
 st.markdown(textwrap.dedent(f"""

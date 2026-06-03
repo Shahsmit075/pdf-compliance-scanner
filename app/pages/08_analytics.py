@@ -10,10 +10,45 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 import textwrap
+from datetime import datetime
 from storage.database import get_all_scans
 from app.styles.theme import GLOBAL_CSS
 from app.components.ui import metric_grid, empty_state, section_divider
+
+# ── Noir Amber Plotly theme helper ────────────────────────────────────────────
+def _noir_bar(x_vals, y_vals, color: str = "#E8A838", name: str = "") -> go.Figure:
+    """Create a Plotly bar chart styled for the Noir Amber dark theme."""
+    fig = go.Figure(go.Bar(
+        x=x_vals,
+        y=y_vals,
+        marker_color=color,
+        marker_line_color="rgba(0,0,0,0)",
+        name=name,
+    ))
+    fig.update_layout(
+        paper_bgcolor="#141414",
+        plot_bgcolor="#141414",
+        font=dict(family="'Space Mono', monospace", color="#7A7A7A", size=11),
+        margin=dict(l=0, r=0, t=8, b=0),
+        height=220,
+        showlegend=False,
+        xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            tickfont=dict(color="#7A7A7A", size=10),
+            linecolor="#2A2A2A",
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor="#2A2A2A",
+            zeroline=False,
+            tickfont=dict(color="#7A7A7A", size=10),
+            linecolor="#2A2A2A",
+        ),
+    )
+    return fig
 
 st.set_page_config(page_title="Telemetry & Analytics", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
@@ -91,14 +126,18 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown('<div class="caption-label" style="margin-bottom:8px">SCANS OVER TIME</div>', unsafe_allow_html=True)
     timeline_df = df.groupby("date").size().reset_index(name="scans")
-    timeline_df.set_index("date", inplace=True)
-    st.bar_chart(timeline_df, use_container_width=True, height=220, color="#E8A838")
+    st.plotly_chart(
+        _noir_bar([str(d) for d in timeline_df["date"]], timeline_df["scans"], color="#E8A838"),
+        use_container_width=True, config={"displayModeBar": False}
+    )
 
 with col2:
     st.markdown('<div class="caption-label" style="margin-bottom:8px">TOKEN CONSUMPTION BY DATE</div>', unsafe_allow_html=True)
     tokens_df = df.groupby("date")["total_tokens"].sum().reset_index(name="tokens")
-    tokens_df.set_index("date", inplace=True)
-    st.bar_chart(tokens_df, use_container_width=True, height=220, color="#38C8E8")
+    st.plotly_chart(
+        _noir_bar([str(d) for d in tokens_df["date"]], tokens_df["tokens"], color="#38C8E8"),
+        use_container_width=True, config={"displayModeBar": False}
+    )
 
 st.markdown(section_divider(), unsafe_allow_html=True)
 
@@ -106,20 +145,36 @@ col3, col4 = st.columns(2)
 
 with col3:
     st.markdown('<div class="caption-label" style="margin-bottom:8px">RISK PROFILE FREQUENCY</div>', unsafe_allow_html=True)
-    risk_df = df.groupby("highest_risk").size().reset_index(name="count")
     risk_order = ["low", "medium", "high", "critical"]
+    risk_df = df.groupby("highest_risk").size().reset_index(name="count")
     risk_df["highest_risk"] = pd.Categorical(risk_df["highest_risk"], categories=risk_order, ordered=True)
     risk_df = risk_df.sort_values("highest_risk")
-    risk_df.set_index("highest_risk", inplace=True)
-    st.bar_chart(risk_df, use_container_width=True, height=220, color="#FF4545")
+    risk_colors_map = {"low": "#4FD180", "medium": "#E8C838", "high": "#FF8C42", "critical": "#FF4545"}
+    bar_colors = [risk_colors_map.get(str(r), "#E8A838") for r in risk_df["highest_risk"]]
+    fig3 = go.Figure(go.Bar(
+        x=risk_df["highest_risk"].astype(str),
+        y=risk_df["count"],
+        marker_color=bar_colors,
+        marker_line_color="rgba(0,0,0,0)",
+    ))
+    fig3.update_layout(
+        paper_bgcolor="#141414", plot_bgcolor="#141414",
+        font=dict(family="'Space Mono', monospace", color="#7A7A7A", size=11),
+        margin=dict(l=0, r=0, t=8, b=0), height=220, showlegend=False,
+        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(color="#7A7A7A", size=10), linecolor="#2A2A2A"),
+        yaxis=dict(showgrid=True, gridcolor="#2A2A2A", zeroline=False, tickfont=dict(color="#7A7A7A", size=10), linecolor="#2A2A2A"),
+    )
+    st.plotly_chart(fig3, use_container_width=True, config={"displayModeBar": False})
 
 with col4:
     st.markdown('<div class="caption-label" style="margin-bottom:8px">AI PROVIDER DISTRIBUTION</div>', unsafe_allow_html=True)
     provider_col = "ai_provider" if "ai_provider" in df.columns else "provider"
     if provider_col in df.columns:
         provider_df = df.groupby(provider_col).size().reset_index(name="count")
-        provider_df.set_index(provider_col, inplace=True)
-        st.bar_chart(provider_df, use_container_width=True, height=220, color="#C8F135")
+        st.plotly_chart(
+            _noir_bar(provider_df[provider_col].astype(str), provider_df["count"], color="#C8F135"),
+            use_container_width=True, config={"displayModeBar": False}
+        )
     else:
         st.markdown("<div style='color:var(--text-muted); padding-top:20px'>No provider telemetry available.</div>", unsafe_allow_html=True)
 

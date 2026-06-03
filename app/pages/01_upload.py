@@ -134,10 +134,16 @@ if uploaded_file is None:
         display: none !important;
     }
     </style>
+    """), unsafe_allow_html=True)
+    _video_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "arch-animations.mov"))
+    st.markdown(textwrap.dedent("""
     <div class="animate-fadein-2" style="margin-top:24px; padding:16px; border:1px solid var(--border); border-radius:4px; background:var(--surface)">
       <div class="caption-label" style="margin-bottom:12px">ARCHITECTURE ANIMATION</div>
     """), unsafe_allow_html=True)
-    st.video("app/pages/arch-animations.mov", autoplay=True, loop=True, muted=True)
+    try:
+        st.video(_video_path, autoplay=True, loop=True, muted=True)
+    except Exception:
+        st.markdown("<div style='color:var(--text-muted);font-family:monospace;font-size:13px;padding:8px'>[ Video preview unavailable in this environment ]</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
     
     st.stop()

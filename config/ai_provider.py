@@ -30,8 +30,8 @@ except Exception:
 
 from groq import Groq
 
-AI_PROVIDER = os.getenv("AI_PROVIDER", "groq")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama3-70b-8192")
+# These are read dynamically at call-time so os.environ changes from the UI take effect.
+# Do NOT cache as module-level constants.
 
 # Initialize Langfuse client gracefully
 LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
@@ -51,22 +51,23 @@ if LANGFUSE_SECRET_KEY and LANGFUSE_PUBLIC_KEY:
 
 
 def get_ai_client():
-    """Return the configured AI client."""
-    if AI_PROVIDER == "groq":
+    """Return the configured AI client. Reads AI_PROVIDER dynamically to support runtime switching."""
+    provider = os.getenv("AI_PROVIDER", "groq")
+    if provider == "groq":
         return Groq(api_key=os.getenv("GROQ_API_KEY"))
-    elif AI_PROVIDER == "anthropic":
+    elif provider == "anthropic":
         import anthropic
         return anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    elif AI_PROVIDER == "gemini":
+    elif provider == "gemini":
         import google.generativeai as genai
         genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
         return genai
-    elif AI_PROVIDER == "ollama":
+    elif provider == "ollama":
         # Ollama uses OpenAI-compatible API — no key needed
         from openai import OpenAI
         return OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
     else:
-        raise ValueError(f"Unknown AI_PROVIDER: {AI_PROVIDER}")
+        raise ValueError(f"Unknown AI_PROVIDER: {provider}")
 
 
 @observe(as_type="generation", capture_input=False, capture_output=False)
@@ -83,15 +84,16 @@ def call_ai(system_prompt: str, user_message: str, max_tokens: int = 1024) -> di
     Traces metadata to Langfuse in a privacy-first manner.
     """
     client = get_ai_client()
+    provider = os.getenv("AI_PROVIDER", "groq")
 
     # Determine the model name for tracing
-    if AI_PROVIDER == "groq":
-        model_name = GROQ_MODEL
-    elif AI_PROVIDER == "ollama":
+    if provider == "groq":
+        model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    elif provider == "ollama":
         model_name = os.getenv("OLLAMA_MODEL", "llama3")
-    elif AI_PROVIDER == "anthropic":
+    elif provider == "anthropic":
         model_name = "claude-sonnet-4-5"
-    elif AI_PROVIDER == "gemini":
+    elif provider == "gemini":
         model_name = "gemini-1.5-flash"
     else:
         model_name = "unknown"
@@ -106,7 +108,7 @@ def call_ai(system_prompt: str, user_message: str, max_tokens: int = 1024) -> di
                 "user_message": "<redacted>"
             },
             metadata={
-                "provider": AI_PROVIDER,
+                "provider": provider,
             }
         )
     except Exception:
@@ -118,7 +120,7 @@ def call_ai(system_prompt: str, user_message: str, max_tokens: int = 1024) -> di
     total_tokens = 0
 
     try:
-        if AI_PROVIDER in ["groq", "ollama"]:
+        if provider in ["groq", "ollama"]:
             response = client.chat.completions.create(
                 model=model_name,
                 max_tokens=max_tokens,
@@ -134,7 +136,7 @@ def call_ai(system_prompt: str, user_message: str, max_tokens: int = 1024) -> di
                 completion_tokens = getattr(response.usage, "completion_tokens", 0)
                 total_tokens = getattr(response.usage, "total_tokens", 0)
 
-        elif AI_PROVIDER == "anthropic":
+        elif provider == "anthropic":
             response = client.messages.create(
                 model=model_name,
                 max_tokens=max_tokens,
@@ -147,7 +149,7 @@ def call_ai(system_prompt: str, user_message: str, max_tokens: int = 1024) -> di
                 completion_tokens = getattr(response.usage, "output_tokens", 0)
                 total_tokens = prompt_tokens + completion_tokens
 
-        elif AI_PROVIDER == "gemini":
+        elif provider == "gemini":
             model = client.GenerativeModel(
                 model_name=model_name,
                 system_instruction=system_prompt
@@ -159,7 +161,7 @@ def call_ai(system_prompt: str, user_message: str, max_tokens: int = 1024) -> di
                 completion_tokens = getattr(response.usage_metadata, "candidates_token_count", 0)
                 total_tokens = getattr(response.usage_metadata, "total_token_count", 0)
         else:
-            raise ValueError(f"Provider {AI_PROVIDER} not implemented")
+            raise ValueError(f"Provider {provider} not implemented")
 
         # Update Langfuse on success
         try:
@@ -186,10 +188,6 @@ def call_ai(system_prompt: str, user_message: str, max_tokens: int = 1024) -> di
         except Exception:
             pass
         raise e
-
-
-
-    raise ValueError(f"Provider {AI_PROVIDER} not implemented")
 
 
 def parse_json_response(raw_text: str) -> dict:
