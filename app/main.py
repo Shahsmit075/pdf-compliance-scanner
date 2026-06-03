@@ -27,23 +27,12 @@ with st.sidebar:
       <div style="font-family:'Space Mono',monospace; font-size:21px; font-weight:700; color:var(--amber); letter-spacing:0.05em; margin-bottom:4px">
         COMPLIANCE<br>SCANNER
       </div>
-      <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--text-muted); letter-spacing:0.2em; text-transform:uppercase">
-        NOIR AMBER · v2.0
+      <div style="font-family:'Space Mono',monospace; font-size:10px; color:var(--text-muted); letter-spacing:0.05em; text-transform:uppercase">
+        AI-Powered Document Compliance Guard
       </div>
     </div>
-    <hr style="border:none;border-top:1px solid var(--border);margin:0 0 20px">
-    <div class="caption-label" style="margin-bottom:12px">NAVIGATION</div>
     """), unsafe_allow_html=True)
 
-    st.page_link("main.py", label="◈  HOME", icon=None)
-    st.page_link("pages/01_upload.py", label="⬡  UPLOAD & SCAN", icon=None)
-    st.page_link("pages/02_rules.py", label="⟁  DETECTION RULES", icon=None)
-    st.page_link("pages/03_reports.py", label="⚠  SCAN ARCHIVE", icon=None)
-    st.page_link("pages/08_analytics.py", label="📊  TELEMETRY & ANALYTICS", icon=None)
-
-
-    st.markdown('<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">', unsafe_allow_html=True)
-    
     with st.expander("⚙️ API CONFIGURATION", expanded=False):
         import os
         st.markdown("<div style='font-size:13px; color:var(--text-muted); margin-bottom:8px'>Override .env keys dynamically</div>", unsafe_allow_html=True)
@@ -62,16 +51,6 @@ with st.sidebar:
         anthropic_key = st.text_input("Anthropic API Key", value=os.environ.get("ANTHROPIC_API_KEY", ""), type="password", help="Required if AI_PROVIDER=anthropic")
         if anthropic_key:
             os.environ["ANTHROPIC_API_KEY"] = anthropic_key
-
-    st.markdown(textwrap.dedent("""
-    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 10px">
-    <div class="caption-label" style="margin-bottom:10px;color:var(--amber)">DATA SOURCES</div>
-    """), unsafe_allow_html=True)
-
-    st.page_link("pages/04_data_sources.py", label="🔌  DATA SOURCES", icon=None)
-    st.page_link("pages/05_ds_scan.py",      label="⬡  DS SCAN",      icon=None)
-    st.page_link("pages/06_ds_reports.py",   label="◈  ANALYTICS",    icon=None)
-    st.page_link("pages/07_copilot.py",      label="⟁  AI COPILOT",   icon=None)
 
     st.markdown(textwrap.dedent("""
     <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
