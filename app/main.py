@@ -4,8 +4,14 @@ Streamlit entry point — Noir Amber war-room landing page.
 """
 import sys
 import os
-# Inject project root path to allow absolute imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Inject project root path to allow absolute imports (robust for Streamlit Cloud)
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+# Also ensure cwd (repo root on Streamlit Cloud) is on the path
+_cwd = os.getcwd()
+if _cwd not in sys.path:
+    sys.path.insert(0, _cwd)
 
 import streamlit as st
 import textwrap

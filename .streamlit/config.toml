@@ -8,3 +8,6 @@ font = "sans serif"
 [server]
 maxUploadSize = 50
 headless = true
+
+[runner]
+pythonpath = ["."]
