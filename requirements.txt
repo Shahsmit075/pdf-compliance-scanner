@@ -13,7 +13,7 @@ langchain-groq==0.1.6
 
 # AI Clients
 groq==0.9.0
-anthropic        # Optional: only if you later get Claude API
+anthropic        # Optional: Claude API
 
 # PDF Processing
 PyMuPDF==1.24.5          # fitz — fast, accurate PDF parser
@@ -36,3 +36,40 @@ pytest-mock==3.14.0
 
 # Security
 bandit==1.7.9
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Data Source Connectors (install only what you use — lazy-loaded)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Database Connectors
+psycopg2-binary            # PostgreSQL
+pymysql                    # MySQL
+pymongo                    # MongoDB
+pyodbc                     # SQL Server (requires unixODBC on macOS: brew install unixodbc)
+
+# Cloud Storage Connectors
+boto3                      # AWS S3 + Secrets Manager
+azure-storage-file-datalake # Azure ADLS Gen2
+google-cloud-storage        # Google Cloud Storage
+
+# Data Warehouse Connectors
+snowflake-connector-python  # Snowflake
+google-cloud-bigquery       # BigQuery
+databricks-sql-connector    # Databricks
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RAG & Vector Store
+# ─────────────────────────────────────────────────────────────────────────────
+chromadb                   # Vector store (requires sqlite3 >= 3.35)
+sentence-transformers      # Local embeddings (optional — ChromaDB uses its own by default)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Analytics & Visualization
+# ─────────────────────────────────────────────────────────────────────────────
+plotly                     # Interactive charts on Module 06
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Secret Manager (optional production dependencies)
+# ─────────────────────────────────────────────────────────────────────────────
+# hvac                     # HashiCorp Vault (uncomment if using Vault)
+

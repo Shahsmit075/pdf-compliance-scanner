@@ -64,18 +64,28 @@ with st.sidebar:
             os.environ["ANTHROPIC_API_KEY"] = anthropic_key
 
     st.markdown(textwrap.dedent("""
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 10px">
+    <div class="caption-label" style="margin-bottom:10px;color:var(--amber)">DATA SOURCES</div>
+    """), unsafe_allow_html=True)
+
+    st.page_link("pages/04_data_sources.py", label="🔌  DATA SOURCES", icon=None)
+    st.page_link("pages/05_ds_scan.py",      label="⬡  DS SCAN",      icon=None)
+    st.page_link("pages/06_ds_reports.py",   label="◈  ANALYTICS",    icon=None)
+    st.page_link("pages/07_copilot.py",      label="⟁  AI COPILOT",   icon=None)
+
+    st.markdown(textwrap.dedent("""
     <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
     <div class="caption-label" style="margin-bottom:10px">PIPELINE STACK</div>
-    <div style="font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--text-muted); line-height:1.8">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text-muted); line-height:1.9">
       Groq Llama 3<br>
       LangGraph DAG<br>
-      PyMuPDF Extract<br>
-      ReportLab PDF<br>
+      PyMuPDF · ReportLab<br>
+      ChromaDB RAG<br>
       SQLite Storage
     </div>
     <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
-    <div style="font-family:'Space Mono',monospace; font-size:12px; color:#3A3A3A; letter-spacing:0.1em">
-      PII · CONFID · ENC · ABUSE<br>
+    <div style="font-family:'Space Mono',monospace; font-size:11px; color:#3A3A3A; letter-spacing:0.1em">
+      PDF · DB · S3 · WAREHOUSE<br>
       ALL SYSTEMS OPERATIONAL
     </div>
     """), unsafe_allow_html=True)

@@ -5,12 +5,30 @@ Switch providers by changing AI_PROVIDER in your .env file.
 """
 import os
 import json
-from groq import Groq
 from tenacity import retry, stop_after_attempt, wait_exponential
 from dotenv import load_dotenv
 from langfuse import Langfuse, observe, get_client
 
 load_dotenv()
+
+# ── Fix: Groq 0.9.0 passes `proxies` to httpx which dropped it in 0.28+ ──────
+try:
+    import httpx as _httpx
+    _orig_init = _httpx.Client.__init__
+    def _patched_init(self, *args, **kwargs):
+        kwargs.pop("proxies", None)
+        _orig_init(self, *args, **kwargs)
+    _httpx.Client.__init__ = _patched_init
+
+    _orig_async_init = _httpx.AsyncClient.__init__
+    def _patched_async_init(self, *args, **kwargs):
+        kwargs.pop("proxies", None)
+        _orig_async_init(self, *args, **kwargs)
+    _httpx.AsyncClient.__init__ = _patched_async_init
+except Exception:
+    pass
+
+from groq import Groq
 
 AI_PROVIDER = os.getenv("AI_PROVIDER", "groq")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama3-70b-8192")
