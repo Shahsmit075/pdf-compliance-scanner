@@ -7,6 +7,8 @@ import re
 from pathlib import Path
 from pipeline.state import PipelineState
 from config.ai_provider import call_ai, parse_json_response
+from langfuse import observe
+
 
 # Load system prompt
 PROMPT_FILE = Path(__file__).parent.parent.parent / "config" / "prompts" / "pii_prompt.txt"
@@ -165,6 +167,7 @@ def _risk_from_flags(findings: list) -> str:
     return highest.get("risk_level", "low")
 
 
+@observe(capture_input=False, capture_output=False)
 def pii_node(state: PipelineState) -> dict:
     """
     Dual-engine PII detection:
@@ -174,10 +177,11 @@ def pii_node(state: PipelineState) -> dict:
     """
     rules = state.get("compliance_rules", {}).get("pii", {})
     if not rules.get("enabled", True):
-        return {"pii_results": []}
+        return {"pii_results": [], "pii_tokens_used": 0}
 
     min_confidence = rules.get("min_confidence", 0.75)
     page_results = []
+    tokens_used = 0
 
     for page_data in state["pages_text"]:
         text = page_data["text"].strip()
@@ -197,11 +201,13 @@ def pii_node(state: PipelineState) -> dict:
         ai_findings = []
         text_for_ai = text[:4000]
         try:
-            raw_response = call_ai(
+            ai_result = call_ai(
                 system_prompt=PII_SYSTEM_PROMPT,
                 user_message=f"Analyse page {page_data['page_num']}:\n\n{text_for_ai}",
                 max_tokens=1024,
             )
+            raw_response = ai_result["content"]
+            tokens_used += ai_result.get("tokens", 0)
             result = parse_json_response(raw_response)
             ai_findings = [
                 f for f in result.get("findings", [])
@@ -220,4 +226,4 @@ def pii_node(state: PipelineState) -> dict:
             "pii_risk": page_risk,
         })
 
-    return {"pii_results": page_results}
+    return {"pii_results": page_results, "pii_tokens_used": tokens_used}

@@ -18,15 +18,15 @@ class TestPipelineIntegration:
             "recommendation": "No action required"
         })
 
-        with patch("pipeline.nodes.pii_detector.call_ai", return_value=clean_ai_response), \
-             patch("pipeline.nodes.confidentiality.call_ai", return_value=json.dumps({
+        with patch("pipeline.nodes.pii_detector.call_ai", return_value={"content": clean_ai_response, "tokens": 0}), \
+             patch("pipeline.nodes.confidentiality.call_ai", return_value={"content": json.dumps({
                  "has_confidential": False, "findings": [], "page_risk": "low",
                  "recommendation": "No action required"
-             })), \
-             patch("pipeline.nodes.abuse_detector.call_ai", return_value=json.dumps({
+             }), "tokens": 0}), \
+             patch("pipeline.nodes.abuse_detector.call_ai", return_value={"content": json.dumps({
                  "has_abuse": False, "findings": [], "page_risk": "low",
                  "recommendation": "No action required"
-             })):
+             }), "tokens": 0}):
             from pipeline.nodes.aggregator import aggregator_node
             from pipeline.nodes.encoding_guard import encoding_node
 

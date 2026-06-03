@@ -4,6 +4,11 @@ Compliance Rules Editor — configure detection rules via UI.
 Changes take effect on the next scan — no restart needed.
 Noir Amber UI redesign.
 """
+import sys
+import os
+# Inject project root path to allow absolute imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import streamlit as st
 import textwrap
 from config.rules import load_rules, save_rules
@@ -250,3 +255,38 @@ if submitted:
       </div>
     </div>
     """), unsafe_allow_html=True)
+
+# ── RULE SANDBOX ─────────────────────────────────────────────────────────────
+st.markdown(textwrap.dedent("""
+<div style="height:1px;background:var(--border);margin:32px 0 24px"></div>
+<div class="caption-label">RULE SANDBOX (TEST ENVIRONMENT)</div>
+<h3 style="font-family:'Space Mono',monospace;font-size:19px;color:var(--text);margin:6px 0 16px">TEST CUSTOM KEYWORDS</h3>
+"""), unsafe_allow_html=True)
+
+test_string = st.text_input("Enter a sample text to test if your currently saved custom keywords will catch it:", key="sandbox_input")
+if test_string:
+    import re
+    saved_rules = load_rules()
+    kws = saved_rules.get("confidentiality", {}).get("custom_keywords", [])
+    
+    matches = []
+    if kws:
+        for kw in kws:
+            if re.search(r'\\b' + re.escape(kw) + r'\\b', test_string, re.IGNORECASE):
+                matches.append(kw)
+            elif kw.lower() in test_string.lower(): # Fallback if boundary fails for special chars
+                if kw not in matches:
+                    matches.append(kw)
+                
+    if matches:
+        st.markdown(textwrap.dedent(f"""
+        <div style="background:rgba(255,69,69,0.08);border-left:3px solid var(--red);padding:12px 16px;margin-top:8px">
+          <span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--red)">🚩 MATCH FOUND: {', '.join(matches)}</span>
+        </div>
+        """), unsafe_allow_html=True)
+    else:
+        st.markdown(textwrap.dedent("""
+        <div style="background:rgba(79,209,128,0.08);border-left:3px solid var(--low);padding:12px 16px;margin-top:8px">
+          <span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--low)">✓ NO MATCHES FOUND (PASS)</span>
+        </div>
+        """), unsafe_allow_html=True)

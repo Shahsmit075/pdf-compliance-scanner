@@ -2,6 +2,11 @@
 """
 Streamlit entry point — Noir Amber war-room landing page.
 """
+import sys
+import os
+# Inject project root path to allow absolute imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import streamlit as st
 import textwrap
 from app.styles.theme import GLOBAL_CSS
@@ -34,6 +39,29 @@ with st.sidebar:
     st.page_link("pages/01_upload.py", label="⬡  UPLOAD & SCAN", icon=None)
     st.page_link("pages/02_rules.py", label="⟁  DETECTION RULES", icon=None)
     st.page_link("pages/03_reports.py", label="⚠  SCAN ARCHIVE", icon=None)
+    st.page_link("pages/04_analytics.py", label="📊  TELEMETRY & ANALYTICS", icon=None)
+
+
+    st.markdown('<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">', unsafe_allow_html=True)
+    
+    with st.expander("⚙️ API CONFIGURATION", expanded=False):
+        import os
+        st.markdown("<div style='font-size:13px; color:var(--text-muted); margin-bottom:8px'>Override .env keys dynamically</div>", unsafe_allow_html=True)
+        
+        # Groq
+        groq_key = st.text_input("Groq API Key", value=os.environ.get("GROQ_API_KEY", ""), type="password", help="Required for Llama3 models")
+        if groq_key:
+            os.environ["GROQ_API_KEY"] = groq_key
+            
+        # Gemini
+        gemini_key = st.text_input("Gemini API Key", value=os.environ.get("GOOGLE_API_KEY", ""), type="password", help="Required if AI_PROVIDER=gemini")
+        if gemini_key:
+            os.environ["GOOGLE_API_KEY"] = gemini_key
+            
+        # Anthropic
+        anthropic_key = st.text_input("Anthropic API Key", value=os.environ.get("ANTHROPIC_API_KEY", ""), type="password", help="Required if AI_PROVIDER=anthropic")
+        if anthropic_key:
+            os.environ["ANTHROPIC_API_KEY"] = anthropic_key
 
     st.markdown(textwrap.dedent("""
     <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">

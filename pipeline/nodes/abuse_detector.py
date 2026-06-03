@@ -9,6 +9,8 @@ import re
 from pathlib import Path
 from pipeline.state import PipelineState
 from config.ai_provider import call_ai, parse_json_response
+from langfuse import observe
+
 
 PROMPT_FILE = Path(__file__).parent.parent.parent / "config" / "prompts" / "abuse_prompt.txt"
 ABUSE_SYSTEM_PROMPT = (
@@ -209,6 +211,7 @@ def _risk_from_flags(findings: list) -> str:
     ).get("risk_level", "low")
 
 
+@observe(capture_input=False, capture_output=False)
 def abuse_node(state: PipelineState) -> dict:
     """
     Three-layer abuse detection:
@@ -218,10 +221,11 @@ def abuse_node(state: PipelineState) -> dict:
     """
     rules = state.get("compliance_rules", {}).get("abuse", {})
     if not rules.get("enabled", True):
-        return {"abuse_results": []}
+        return {"abuse_results": [], "abuse_tokens_used": 0}
 
     zero_tolerance = rules.get("zero_tolerance_categories", ["child_safety", "terrorism"])
     page_results = []
+    tokens_used = 0
 
     for page_data in state["pages_text"]:
         text = page_data["text"].strip()
@@ -243,11 +247,13 @@ def abuse_node(state: PipelineState) -> dict:
         # Layer 3: AI moderation (best-effort)
         ai_findings = []
         try:
-            raw = call_ai(
+            ai_result = call_ai(
                 system_prompt=ABUSE_SYSTEM_PROMPT,
                 user_message=f"Analyse page {page_data['page_num']}:\n\n{text[:4000]}",
                 max_tokens=512,
             )
+            raw = ai_result["content"]
+            tokens_used += ai_result.get("tokens", 0)
             result = parse_json_response(raw)
             for finding in result.get("findings", []):
                 finding["detection_method"] = "ai"
@@ -274,4 +280,4 @@ def abuse_node(state: PipelineState) -> dict:
             "abuse_risk": page_risk,
         })
 
-    return {"abuse_results": page_results}
+    return {"abuse_results": page_results, "abuse_tokens_used": tokens_used}

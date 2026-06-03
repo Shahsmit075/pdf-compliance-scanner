@@ -1,0 +1,62 @@
+=== COMPLIANCE SCANNER TEST DATASET ===
+
+Use the content below to test the PDF Compliance Scanner. 
+Copy and paste this text into a word document (Word, Google Docs, etc.) and export/save it as a PDF to scan.
+
+--- PAGE 1: PERSONALLY IDENTIFIABLE INFORMATION (PII) ---
+
+Employee Onboarding & Registration Form
+Date: 2026-06-03
+Status: Draft
+
+Candidate Profile Details:
+- Full Name: Smit Shah
+- Email Address: smit.shah@enterprise.com
+- Alternative Email: s.shah99@gmail.com
+- Contact Number (IN): +91 98765 43210
+- Secondary Contact (US): +1-555-019-2834
+- Social Security Number (SSN): 666-29-0128
+- Aadhaar Number: 4839 2819 0492
+- PAN Card Number: ABCDE1234F
+- Passport Number: Z1234567
+
+--- PAGE 2: CONFIDENTIALITY & PROPRIETARY SECRETS ---
+
+PROJECT PHOENIX: PHASE 3 DEPLOYMENT PLAN
+CONFIDENTIAL — FOR INTERNAL USE ONLY
+
+Production System Infrastructure Configuration:
+- Database Host: db-prod-01.internal.enterprise.com
+- Database Port: 5432
+- Master Username: administrator_root
+- Master Password: DB_PASSWORD_PLACEHOLDER
+- Groq API Key: gsk_mock_key_abc123xyz789def456ghi012jkl345mno678pqr
+- AWS Access Key ID: AWS_ACCESS_KEY_ID_PLACEHOLDER
+- AWS Secret Access Key: AWS_SECRET_ACCESS_KEY_PLACEHOLDER
+
+Financial Performance Metrics (Q4 Projection):
+- Target Revenue: $18,450,000
+- Planned Headcount Reduction: 12% in regional offices (Non-disclosure Agreement protected)
+
+--- PAGE 3: GENERAL COMPLIANCE & SAFETY (ABUSE/THREATS) ---
+
+Public Relations Statement & Feedback Review
+Department: Communications
+
+Reviewing flag comments from external forums:
+1. Threatening message detected on social media:
+   "We are planning to organize a coordinated cyberattack to shutdown the main server next Friday."
+2. Illegal activity discussion:
+   "Instruction on how to bypass registration: use the hacked license keys shared on the dark web."
+
+--- PAGE 4: CLEAN COMPLIANCE PAGE ---
+
+Compliance Policy Overview
+
+This organization is committed to maintaining the highest standards of data security, privacy, and integrity. We implement strict operational guidelines across all development teams:
+- Regular automated dependency audits.
+- Prompt remediation of discovered vulnerabilities.
+- Mandatory secure coding practices for all engineers.
+- Periodic risk assessment scans for documents and deliverables.
+
+For support, please contact the internal IT Helpdesk or security compliance officer.

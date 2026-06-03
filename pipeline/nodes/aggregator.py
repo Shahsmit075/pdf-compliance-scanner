@@ -5,6 +5,8 @@ Computes overall risk per page using both per-check severity AND total flag coun
 Risk is ALWAYS a known value: low | medium | high | critical — never "unknown".
 """
 from pipeline.state import PipelineState
+from langfuse import observe
+
 
 # "unknown" maps to 0 — treated as low, never inflates risk score
 RISK_RANK = {"low": 0, "medium": 1, "high": 2, "critical": 3, "unknown": 0}
@@ -41,6 +43,7 @@ def _flags_to_risk(total_flags: int) -> str:
     return "low"
 
 
+@observe(capture_input=False, capture_output=False)
 def aggregator_node(state: PipelineState) -> dict:
     """
     Merge all compliance results into unified page results and summary stats.
@@ -123,6 +126,12 @@ def aggregator_node(state: PipelineState) -> dict:
     doc_count_risk = _flags_to_risk(total_flags_all)
     highest_risk = _highest_risk(doc_severity_risk, doc_count_risk)
 
+    import time
+    start_time = state.get("start_time")
+    scan_duration_seconds = 0.0
+    if start_time:
+        scan_duration_seconds = round(time.time() - start_time, 2)
+
     summary = {
         "total_pages":        state.get("total_pages", 0),
         "total_issues":       total_issues,
@@ -135,10 +144,12 @@ def aggregator_node(state: PipelineState) -> dict:
             "by_severity": risk_counts,
             "by_type": total_issues,
         },
+        "scan_duration_seconds": scan_duration_seconds,
     }
 
     return {
         "page_results":       page_results,
         "summary":            summary,
         "processing_complete": True,
+        "scan_duration_seconds": scan_duration_seconds,
     }

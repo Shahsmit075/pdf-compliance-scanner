@@ -2,6 +2,10 @@
 streamlit==1.35.0
 streamlit-authenticator==0.3.1
 
+# Observability & Analytics
+langfuse>=2.0.0           # LLM tracing — cloud + local
+pandas>=2.0.0             # Analytics dashboard dataframes
+
 # LangGraph Orchestration
 langgraph==0.2.14
 langchain-core>=0.2.27

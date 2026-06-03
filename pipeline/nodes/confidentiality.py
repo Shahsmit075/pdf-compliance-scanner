@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from pipeline.state import PipelineState
 from config.ai_provider import call_ai, parse_json_response
+from langfuse import observe
+
 
 PROMPT_FILE = Path(__file__).parent.parent.parent / "config" / "prompts" / "confidential_prompt.txt"
 BASE_PROMPT = PROMPT_FILE.read_text() if PROMPT_FILE.exists() else "Detect confidential data and return JSON."
@@ -172,6 +174,7 @@ def _risk_from_flags(findings: list) -> str:
     )
 
 
+@observe(capture_input=False, capture_output=False)
 def confidentiality_node(state: PipelineState) -> dict:
     """
     Dual-engine confidentiality detection:
@@ -182,11 +185,12 @@ def confidentiality_node(state: PipelineState) -> dict:
     conf_rules = rules.get("confidentiality", {})
 
     if not conf_rules.get("enabled", True):
-        return {"confidential_results": []}
+        return {"confidential_results": [], "confidential_tokens_used": 0}
 
     system_prompt = _build_prompt_with_keywords(rules)
     min_confidence = conf_rules.get("min_confidence", 0.70)
     page_results = []
+    tokens_used = 0
 
     for page_data in state["pages_text"]:
         text = page_data["text"].strip()
@@ -205,11 +209,13 @@ def confidentiality_node(state: PipelineState) -> dict:
         # ── Step 2: AI semantic detection (best-effort) ───────────────────
         ai_findings = []
         try:
-            raw_response = call_ai(
+            ai_result = call_ai(
                 system_prompt=system_prompt,
                 user_message=f"Analyse page {page_data['page_num']}:\n\n{text[:4000]}",
                 max_tokens=1024,
             )
+            raw_response = ai_result["content"]
+            tokens_used += ai_result.get("tokens", 0)
             result = parse_json_response(raw_response)
             ai_findings = [
                 f for f in result.get("findings", [])
@@ -227,4 +233,4 @@ def confidentiality_node(state: PipelineState) -> dict:
             "confidential_risk": page_risk,
         })
 
-    return {"confidential_results": page_results}
+    return {"confidential_results": page_results, "confidential_tokens_used": tokens_used}

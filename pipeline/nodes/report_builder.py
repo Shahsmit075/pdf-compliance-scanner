@@ -11,6 +11,8 @@ Includes executive summary, risk heatmap, and detailed findings with:
 import os
 from datetime import datetime
 from pipeline.state import PipelineState
+from langfuse import observe
+
 
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Table, TableStyle,
@@ -85,6 +87,7 @@ def _fmt_method(flag: dict) -> str:
     return "Regex" if method == "keyword" or method == "regex" else "AI"
 
 
+@observe(capture_input=False, capture_output=False)
 def report_node(state: PipelineState) -> dict:
     """Generate an enterprise-grade PDF compliance report."""
     os.makedirs("reports", exist_ok=True)
@@ -122,6 +125,16 @@ def report_node(state: PipelineState) -> dict:
     page_hdr_style = ParagraphStyle(
         "PH", parent=body_style, fontName="Helvetica-Bold", fontSize=9,
     )
+    table_cell_style = ParagraphStyle(
+        "TCell", parent=styles["Normal"], fontName="Helvetica", fontSize=7,
+        leading=9, wordWrap="CJK",
+    )
+    table_cell_style.splitLongWords = True
+    table_cell_bold_style = ParagraphStyle(
+        "TCellB", parent=table_cell_style, fontName="Helvetica-Bold",
+        textColor=COLOR_WHITE,
+    )
+
 
     # ── TITLE ─────────────────────────────────────────────────────────────
     story.append(Paragraph("🛡️ PDF Compliance Report", title_style))
@@ -244,7 +257,13 @@ def report_node(state: PipelineState) -> dict:
 
         # Header row: Type | Entity Type | Matched Value | Confidence | Method | Severity | Context
         finding_data = [[
-            "Type", "Entity", "Matched Value", "Conf.", "Method", "Severity", "Context / Snippet"
+            Paragraph("Type", table_cell_bold_style),
+            Paragraph("Entity", table_cell_bold_style),
+            Paragraph("Matched Value", table_cell_bold_style),
+            Paragraph("Conf.", table_cell_bold_style),
+            Paragraph("Method", table_cell_bold_style),
+            Paragraph("Severity", table_cell_bold_style),
+            Paragraph("Context / Snippet", table_cell_bold_style),
         ]]
 
         for flag, check_type in all_flags:
@@ -256,18 +275,18 @@ def report_node(state: PipelineState) -> dict:
             context    = _fmt_context(flag)
 
             finding_data.append([
-                check_type,
-                category,
-                matched,
+                Paragraph(check_type, table_cell_style),
+                Paragraph(category, table_cell_style),
+                Paragraph(matched, table_cell_style),
                 confidence,
                 method,
                 severity,
-                context,
+                Paragraph(context, table_cell_style),
             ])
 
         finding_table = Table(
             finding_data,
-            colWidths=[1.8*cm, 2.2*cm, 2.5*cm, 1.2*cm, 1.3*cm, 1.7*cm, 6.5*cm],
+            colWidths=[2.0*cm, 2.2*cm, 2.6*cm, 1.0*cm, 1.2*cm, 1.5*cm, 6.7*cm],
         )
 
         # Base style

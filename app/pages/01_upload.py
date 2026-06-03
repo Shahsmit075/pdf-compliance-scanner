@@ -3,6 +3,11 @@
 Upload & Scan page — handles PDF upload and runs the full compliance pipeline.
 Noir Amber UI redesign.
 """
+import sys
+import os
+# Inject project root path to allow absolute imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
 import streamlit as st
 import textwrap
 import tempfile
@@ -43,8 +48,23 @@ st.markdown(textwrap.dedent("""
 </div>
 """), unsafe_allow_html=True)
 
-# ── FILE UPLOADER ──────────────────────────────────────────────────────────────
-st.markdown('<div class="caption-label animate-fadein" style="margin-bottom:8px">DOCUMENT INPUT</div>', unsafe_allow_html=True)
+# ── CONFIGURATION & INPUT ──────────────────────────────────────────────────────
+st.markdown('<div class="caption-label animate-fadein" style="margin-bottom:8px">PIPELINE CONFIGURATION</div>', unsafe_allow_html=True)
+col_cfg1, col_cfg2 = st.columns([1, 2])
+with col_cfg1:
+    provider_choice = st.selectbox(
+        "Active AI Engine",
+        options=["groq", "gemini", "anthropic", "ollama"],
+        index=["groq", "gemini", "anthropic", "ollama"].index(os.environ.get("AI_PROVIDER", "groq")),
+        format_func=lambda x: {"groq": "Groq Llama 3", "gemini": "Google Gemini", "anthropic": "Anthropic Claude", "ollama": "Local Ollama"}[x]
+    )
+    if provider_choice:
+        os.environ["AI_PROVIDER"] = provider_choice
+
+with col_cfg2:
+    st.markdown('<div style="font-family:\'Space Mono\',monospace; font-size:13px; color:var(--text-muted); padding-top:32px">Select the AI engine for semantic compliance checks</div>', unsafe_allow_html=True)
+
+st.markdown('<div class="caption-label animate-fadein" style="margin-bottom:8px;margin-top:16px">DOCUMENT INPUT</div>', unsafe_allow_html=True)
 
 uploaded_file = st.file_uploader(
     "Choose a PDF file",
@@ -101,6 +121,23 @@ if uploaded_file is None:
       </div>
     </div>
     """), unsafe_allow_html=True)
+    
+    st.markdown(textwrap.dedent("""
+    <style>
+    /* Hide video controls and prevent pause on click/hover */
+    [data-testid="stVideo"] video {
+        pointer-events: none;
+    }
+    [data-testid="stVideo"] video::-webkit-media-controls {
+        display: none !important;
+    }
+    </style>
+    <div class="animate-fadein-2" style="margin-top:24px; padding:16px; border:1px solid var(--border); border-radius:4px; background:var(--surface)">
+      <div class="caption-label" style="margin-bottom:12px">ARCHITECTURE ANIMATION</div>
+    """), unsafe_allow_html=True)
+    st.video("app/pages/arch-animations.mov", autoplay=True, loop=True, muted=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+    
     st.stop()
 
 # ── FILE METADATA ──────────────────────────────────────────────────────────────
@@ -156,25 +193,36 @@ if scan_btn:
     start_time = time.time()
 
     try:
-        # Stage: Extracting
-        progress_bar.progress(10, text="Extracting text from PDF…")
-        status_text.markdown(loading_message(get_stage_message("extracting")), unsafe_allow_html=True)
-        time.sleep(0.3)
+        progress_bar.progress(5, text="Initializing compliance scan…")
+        status_text = st.empty()
+        status_text.markdown(loading_message("Starting pipeline..."), unsafe_allow_html=True)
 
-        # Stage: Running AI checks
-        progress_bar.progress(20, text="Running AI compliance checks…")
-        status_text.markdown(loading_message(get_stage_message("pii_scanning")), unsafe_allow_html=True)
-
-        result = run_pipeline(
+        result = None
+        for node_name, state in run_pipeline(
             pdf_path=tmp_path,
             pdf_name=uploaded_file.name,
             upload_id=upload_id,
             compliance_rules=rules,
-        )
+        ):
+            result = state
+            if node_name == "ingest":
+                progress_bar.progress(20, text="Extracting text complete…")
+                status_text.markdown(loading_message("Ingestion Complete. Starting AI checks..."), unsafe_allow_html=True)
+            elif node_name == "pii_check":
+                status_text.markdown(loading_message("PII Detection complete..."), unsafe_allow_html=True)
+            elif node_name == "confidentiality":
+                status_text.markdown(loading_message("Confidentiality check complete..."), unsafe_allow_html=True)
+            elif node_name == "encoding_check":
+                status_text.markdown(loading_message("Encoding validation complete..."), unsafe_allow_html=True)
+            elif node_name == "abuse_check":
+                status_text.markdown(loading_message("Abuse detection complete..."), unsafe_allow_html=True)
+            elif node_name == "aggregate":
+                progress_bar.progress(80, text="Aggregating results…")
+                status_text.markdown(loading_message("Building compliance report..."), unsafe_allow_html=True)
+            elif node_name == "build_report":
+                progress_bar.progress(95, text="Saving results…")
+                status_text.markdown(loading_message("Finalizing..."), unsafe_allow_html=True)
 
-        # Stage: Saving
-        progress_bar.progress(90, text="Saving results…")
-        status_text.markdown(loading_message(get_stage_message("building_report")), unsafe_allow_html=True)
         save_result(upload_id, uploaded_file.name, result)
 
         # Complete
@@ -347,14 +395,28 @@ if "latest_result" in st.session_state:
           </div>
         </div>
         """), unsafe_allow_html=True)
-        with open(report_path, "rb") as f:
-            st.download_button(
-                label="↓  DOWNLOAD FULL COMPLIANCE REPORT (PDF)",
-                data=f.read(),
-                file_name=f"compliance_report_{upload_id}.pdf",
-                mime="application/pdf",
-                use_container_width=True,
-            )
+        col_down1, col_down2 = st.columns(2)
+        with col_down1:
+            with open(report_path, "rb") as f:
+                st.download_button(
+                    label="↓  DOWNLOAD FULL COMPLIANCE REPORT (PDF)",
+                    data=f.read(),
+                    file_name=f"compliance_report_{upload_id}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
+        with col_down2:
+            import pandas as pd
+            if redaction_records:
+                df = pd.DataFrame(redaction_records)
+                csv = df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="↓  DOWNLOAD RAW DATA (CSV)",
+                    data=csv,
+                    file_name=f"compliance_data_{upload_id}.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
 
     # ── SCAN WARNINGS ──────────────────────────────────────────────────────
     if result.get("errors"):
