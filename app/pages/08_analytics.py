@@ -1,4 +1,4 @@
-# app/pages/04_analytics.py
+# app/pages/08_analytics.py
 """
 Telemetry & Analytics page — displays LLM token usage, latency, and cost savings metrics.
 Noir Amber UI design.
@@ -21,7 +21,7 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 # ── PAGE HEADER ────────────────────────────────────────────────────────────────
 st.markdown(textwrap.dedent("""
 <div class="animate-fadein" style="padding:0 0 24px">
-  <div class="caption-label">MODULE 04</div>
+  <div class="caption-label">MODULE 08</div>
   <h1 style="font-family:'Space Mono',monospace; font-size:33px; font-weight:700; color:var(--text); margin:6px 0 4px; letter-spacing:-0.01em">
     TELEMETRY <span style="color:var(--amber)">&</span> ANALYTICS
   </h1>

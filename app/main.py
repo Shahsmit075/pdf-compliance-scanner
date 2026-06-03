@@ -39,7 +39,7 @@ with st.sidebar:
     st.page_link("pages/01_upload.py", label="⬡  UPLOAD & SCAN", icon=None)
     st.page_link("pages/02_rules.py", label="⟁  DETECTION RULES", icon=None)
     st.page_link("pages/03_reports.py", label="⚠  SCAN ARCHIVE", icon=None)
-    st.page_link("pages/04_analytics.py", label="📊  TELEMETRY & ANALYTICS", icon=None)
+    st.page_link("pages/08_analytics.py", label="📊  TELEMETRY & ANALYTICS", icon=None)
 
 
     st.markdown('<hr style="border:none;border-top:1px solid var(--border);margin:20px 0">', unsafe_allow_html=True)

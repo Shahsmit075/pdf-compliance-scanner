@@ -87,6 +87,43 @@ def _fmt_method(flag: dict) -> str:
     return "Regex" if method == "keyword" or method == "regex" else "AI"
 
 
+def make_wrappable(text: str) -> str:
+    """Make long contiguous strings wrappable in ReportLab by inserting zero-width spaces."""
+    if not text:
+        return text
+    # Escape HTML special characters since we'll wrap in Paragraph which parses XML
+    text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    
+    words = text.split(" ")
+    processed_words = []
+    
+    # We use a unique placeholder that contains no separators
+    placeholder = "XBREAKX"
+    
+    for word in words:
+        if len(word) <= 10:
+            processed_words.append(word)
+            continue
+        w = word
+        for sep in ["_", "-", ":", "/", ".", "="]:
+            w = w.replace(sep, f"{sep}{placeholder}")
+            
+        chunks = w.split(placeholder)
+        processed_chunks = []
+        for chunk in chunks:
+            if len(chunk) > 10:
+                sub_chunks = [chunk[i:i+6] for i in range(0, len(chunk), 6)]
+                processed_chunks.append(placeholder.join(sub_chunks))
+            else:
+                processed_chunks.append(chunk)
+        processed_words.append(placeholder.join(processed_chunks))
+        
+    final_text = " ".join(processed_words)
+    # Now replace placeholder with the 0-size font tag acting as ZWSP
+    zwsp = '<font size="0"> </font>'
+    return final_text.replace(placeholder, zwsp)
+
+
 @observe(capture_input=False, capture_output=False)
 def report_node(state: PipelineState) -> dict:
     """Generate an enterprise-grade PDF compliance report."""
@@ -127,12 +164,17 @@ def report_node(state: PipelineState) -> dict:
     )
     table_cell_style = ParagraphStyle(
         "TCell", parent=styles["Normal"], fontName="Helvetica", fontSize=7,
-        leading=9, wordWrap="CJK",
+        leading=9,
     )
-    table_cell_style.splitLongWords = True
+    table_cell_center_style = ParagraphStyle(
+        "TCellC", parent=table_cell_style, alignment=TA_CENTER,
+    )
     table_cell_bold_style = ParagraphStyle(
         "TCellB", parent=table_cell_style, fontName="Helvetica-Bold",
         textColor=COLOR_WHITE,
+    )
+    table_cell_bold_center_style = ParagraphStyle(
+        "TCellBC", parent=table_cell_bold_style, alignment=TA_CENTER,
     )
 
 
@@ -255,14 +297,12 @@ def report_node(state: PipelineState) -> dict:
             ),
         )
 
-        # Header row: Type | Entity Type | Matched Value | Confidence | Method | Severity | Context
+        # Header row: Violation | Matched Value | Severity | Detection | Context / Snippet
         finding_data = [[
-            Paragraph("Type", table_cell_bold_style),
-            Paragraph("Entity", table_cell_bold_style),
+            Paragraph("Violation", table_cell_bold_style),
             Paragraph("Matched Value", table_cell_bold_style),
-            Paragraph("Conf.", table_cell_bold_style),
-            Paragraph("Method", table_cell_bold_style),
-            Paragraph("Severity", table_cell_bold_style),
+            Paragraph("Severity", table_cell_bold_center_style),
+            Paragraph("Detection", table_cell_bold_center_style),
             Paragraph("Context / Snippet", table_cell_bold_style),
         ]]
 
@@ -274,42 +314,51 @@ def report_node(state: PipelineState) -> dict:
             severity   = (flag.get("risk_level") or flag.get("severity") or "medium").upper()
             context    = _fmt_context(flag)
 
+            # Violation column displays Type and Category stacked nicely
+            v_type_wrapped = make_wrappable(check_type)
+            v_cat_wrapped = make_wrappable(category)
+            violation_html = f"<b>{v_type_wrapped}</b><br/><font color='#555555'>{v_cat_wrapped}</font>"
+
             finding_data.append([
-                Paragraph(check_type, table_cell_style),
-                Paragraph(category, table_cell_style),
-                Paragraph(matched, table_cell_style),
-                confidence,
-                method,
+                Paragraph(violation_html, table_cell_style),
+                Paragraph(make_wrappable(matched), table_cell_style),
                 severity,
-                Paragraph(context, table_cell_style),
+                f"{method} ({confidence})",
+                Paragraph(make_wrappable(context), table_cell_style),
             ])
 
         finding_table = Table(
             finding_data,
-            colWidths=[2.0*cm, 2.2*cm, 2.6*cm, 1.0*cm, 1.2*cm, 1.5*cm, 6.7*cm],
+            colWidths=[3.5*cm, 3.0*cm, 1.5*cm, 2.2*cm, 7.2*cm],
         )
 
         # Base style
         finding_style = [
             ("BACKGROUND",    (0, 0), (-1, 0),  COLOR_SUB_HEADER),
-            ("TEXTCOLOR",     (0, 0), (-1, 0),  COLOR_WHITE),
-            ("FONTNAME",      (0, 0), (-1, 0),  "Helvetica-Bold"),
-            ("FONTSIZE",      (0, 0), (-1, -1), 7),
             ("GRID",          (0, 0), (-1, -1), 0.3, colors.lightgrey),
             ("ROWBACKGROUNDS",(0, 1), (-1, -1), [COLOR_LIGHT_GRAY, COLOR_WHITE]),
             ("PADDING",       (0, 0), (-1, -1), 3),
             ("VALIGN",        (0, 0), (-1, -1), "TOP"),
-            ("WORDWRAP",      (0, 0), (-1, -1), True),
+            ("ALIGN",         (2, 0), (3, -1),  "CENTER"),
+            ("FONTNAME",      (2, 1), (3, -1),  "Helvetica"),
+            ("FONTSIZE",      (2, 1), (3, -1),  7),
         ]
 
-        # Color-code severity column (col 5)
+        # Color-code severity column (col 2)
         for row_idx, (flag, _) in enumerate(all_flags, start=1):
             sev = (flag.get("risk_level") or flag.get("severity") or "low").lower()
             if sev in ("critical", "high"):
-                finding_style.append(("BACKGROUND", (5, row_idx), (5, row_idx), _rc(sev)))
-                finding_style.append(("TEXTCOLOR",  (5, row_idx), (5, row_idx), COLOR_WHITE))
+                finding_style.append(("BACKGROUND", (2, row_idx), (2, row_idx), _rc(sev)))
+                finding_style.append(("TEXTCOLOR",  (2, row_idx), (2, row_idx), COLOR_WHITE))
+                finding_style.append(("FONTNAME",   (2, row_idx), (2, row_idx), "Helvetica-Bold"))
             elif sev == "medium":
-                finding_style.append(("BACKGROUND", (5, row_idx), (5, row_idx), COLOR_MEDIUM))
+                finding_style.append(("BACKGROUND", (2, row_idx), (2, row_idx), COLOR_MEDIUM))
+                finding_style.append(("TEXTCOLOR",  (2, row_idx), (2, row_idx), COLOR_WHITE))
+                finding_style.append(("FONTNAME",   (2, row_idx), (2, row_idx), "Helvetica-Bold"))
+            else:
+                finding_style.append(("BACKGROUND", (2, row_idx), (2, row_idx), COLOR_LOW))
+                finding_style.append(("TEXTCOLOR",  (2, row_idx), (2, row_idx), COLOR_WHITE))
+                finding_style.append(("FONTNAME",   (2, row_idx), (2, row_idx), "Helvetica-Bold"))
 
         finding_table.setStyle(TableStyle(finding_style))
 
