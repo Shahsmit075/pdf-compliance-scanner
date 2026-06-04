@@ -146,6 +146,20 @@ def _send_email(recipients: list, subject: str, body: str) -> bool:
         smtp_pass = os.getenv("SMTP_PASS", "")
         from_addr = os.getenv("SMTP_FROM", smtp_user)
 
+        # ── Clear diagnostic if credentials are missing ────────────────────
+        missing = []
+        if not smtp_user:
+            missing.append("SMTP_USER")
+        if not smtp_pass:
+            missing.append("SMTP_PASS")
+        if missing:
+            logger.error(
+                f"Email alert cannot be sent — missing env vars: {', '.join(missing)}. "
+                f"Add them to your .env file. "
+                f"For Gmail, use an App Password from https://myaccount.google.com/apppasswords"
+            )
+            return False
+
         msg = MIMEText(body)
         msg["Subject"] = subject
         msg["From"] = from_addr
@@ -153,14 +167,15 @@ def _send_email(recipients: list, subject: str, body: str) -> bool:
 
         with smtplib.SMTP(smtp_host, smtp_port) as server:
             server.starttls()
-            if smtp_user and smtp_pass:
-                server.login(smtp_user, smtp_pass)
+            server.login(smtp_user, smtp_pass)
             server.sendmail(from_addr, recipients, msg.as_string())
 
+        logger.info(f"Email alert sent to: {', '.join(recipients)}")
         return True
     except Exception as e:
         logger.error(f"Email alert failed: {e}")
         return False
+
 
 
 def _send_webhook(url: str, payload: dict) -> bool:
