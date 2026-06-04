@@ -267,21 +267,31 @@ with tab_alerts:
     </div>
     """), unsafe_allow_html=True)
 
+    # ── Channel selector OUTSIDE the form (fixes Streamlit freeze bug) ────────
+    # Inside a st.form, selectbox value is frozen until submit, so conditional
+    # fields never update. Putting it outside fixes this.
+    channel = st.selectbox("Channel", ["email", "slack", "webhook"],
+                           key="alert_channel_picker")
+
     with st.form("alert_config_form"):
-        alert_name = st.text_input("Alert Name", placeholder="e.g. Security Team Slack")
+        alert_name = st.text_input("Alert Name", placeholder="e.g. Security Team Alert")
 
-        channel = st.selectbox("Channel", ["slack", "email", "webhook"])
-
+        # Show the correct input based on the already-selected channel
         if channel == "slack":
+            st.markdown('<div style="font-family:\'Space Mono\',monospace;font-size:12px;color:var(--text-muted);margin-bottom:4px">SLACK WEBHOOK URL</div>', unsafe_allow_html=True)
             webhook_url = st.text_input("Slack Webhook URL", type="password",
-                                        placeholder="https://hooks.slack.com/services/...")
+                                        placeholder="https://hooks.slack.com/services/...",
+                                        label_visibility="collapsed")
             channel_config_data = {"webhook_url": webhook_url}
         elif channel == "email":
-            recipients_raw = st.text_input("Recipients (comma-separated)",
-                                           placeholder="security@company.com, dpo@company.com")
+            st.markdown('<div style="font-family:\'Space Mono\',monospace;font-size:12px;color:var(--text-muted);margin-bottom:4px">RECIPIENT EMAIL(S) — comma separated</div>', unsafe_allow_html=True)
+            recipients_raw = st.text_input("Recipients",
+                                           placeholder="you@gmail.com, team@company.com",
+                                           label_visibility="collapsed")
             channel_config_data = {"recipients": [r.strip() for r in recipients_raw.split(",") if r.strip()]}
         else:
-            wh_url = st.text_input("Webhook URL", type="password")
+            st.markdown('<div style="font-family:\'Space Mono\',monospace;font-size:12px;color:var(--text-muted);margin-bottom:4px">WEBHOOK URL</div>', unsafe_allow_html=True)
+            wh_url = st.text_input("Webhook URL", type="password", label_visibility="collapsed")
             channel_config_data = {"url": wh_url}
 
         trigger_levels = st.multiselect(
@@ -304,7 +314,7 @@ with tab_alerts:
             "is_active":          True,
             "cooldown_minutes":   cooldown,
         })
-        st.success("✓ Alert configuration saved")
+        st.success(f"✓ Alert config saved — channel: {channel.upper()}")
         st.rerun()
 
     # Show existing configs
