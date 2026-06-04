@@ -14,6 +14,7 @@ langchain-groq>=0.1.6,<2.0.0
 # AI Clients
 groq>=0.9.0,<1.0.0
 anthropic>=0.25.0,<1.0.0        # Optional: Claude API
+openai>=1.0.0,<2.0.0            # Required for local Ollama integration (OpenAI-compatible API client)
 
 # PDF Processing
 PyMuPDF>=1.24.5,<2.0.0          # fitz — fast, accurate PDF parser
