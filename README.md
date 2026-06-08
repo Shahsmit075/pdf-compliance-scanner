@@ -37,7 +37,7 @@ An AI-powered, enterprise-grade data and document compliance scanning platform. 
 
 ### 1. Architecture Diagram
 <!-- ARCHITECTURE_DIAGRAM_PLACEHOLDER_START -->
-![System Architecture Flow](file:///Users/as-mac-1320/Downloads/genai-capstone/pdf-compliance-scanner/documentations/arch.png)
+<img width="1530" height="893" alt="arch" src="https://github.com/user-attachments/assets/b1ec4cfc-17c5-4463-8731-f17fdcef20f6" />
 <!-- ARCHITECTURE_DIAGRAM_PLACEHOLDER_END -->
 
 For additional details, refer to the [documentations/architecture.md](file:///Users/as-mac-1320/Downloads/genai-capstone/pdf-compliance-scanner/documentations/architecture.md) specification file.
