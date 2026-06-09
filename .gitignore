@@ -1,17 +1,39 @@
+# ── Secrets & Credentials ────────────────────────────────────────────────────
 .env
 .streamlit/secrets.toml
-*.db
-reports/
+
+# ── Test scripts with embedded credentials / personal data ───────────────────
+test_snowflake.py
+test_email.py
+
+# ── Python artefacts ─────────────────────────────────────────────────────────
 __pycache__/
-.venv/
 *.pyc
 *.pyo
-.DS_Store
 *.egg-info/
+
+# ── Virtual environment ───────────────────────────────────────────────────────
+.venv/
+
+# ── Databases & storage ───────────────────────────────────────────────────────
+*.db
+
+# ── Generated reports ─────────────────────────────────────────────────────────
+reports/
+
+# ── Build & dist ──────────────────────────────────────────────────────────────
 dist/
 build/
+
+# ── Test / coverage ───────────────────────────────────────────────────────────
 .pytest_cache/
 .coverage
 coverage.xml
 htmlcov/
+
+# ── macOS system files ────────────────────────────────────────────────────────
+.DS_Store
+
+# ── Personal / scratch files ─────────────────────────────────────────────────
 cue_card_arpit.md
+scratch/

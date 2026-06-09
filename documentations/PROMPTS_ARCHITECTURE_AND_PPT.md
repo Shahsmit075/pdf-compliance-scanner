@@ -1,5 +1,4 @@
 # LLM Prompts — Architecture Diagram & PPT Generation
-**PDF Compliance Scanner | Sigmoid Bangalore | May–Jun 2026**
 
 ---
 
@@ -15,7 +14,7 @@ You are an expert technical diagram designer. Create a detailed, visually rich s
 
 ────────────────────────────────────────────────────────────────
 PROJECT: PDF Compliance Scanner
-TEAM: Shahsmit075 × ArpitMishra2 | Sigmoid Bangalore | May–Jun 2026
+TEAM: Shahsmit075 × ArpitMishra2 |   Bangalore | May–Jun 2026
 CAPSTONE: Option A — Intelligent Document Compliance Pipeline (Enterprise-Enhanced)
 ────────────────────────────────────────────────────────────────
 
@@ -186,7 +185,7 @@ PROJECT CONTEXT
 ────────────────────────────────────────────────────────────────
 Project Name: PDF Compliance Scanner
 Team: Shahsmit075 × ArpitMishra2
-Programme: Sigmoid Bangalore | GenAI for Data Engineering | Batch May–Jun 2026
+Programme:   Bangalore | GenAI for Data Engineering | Batch May–Jun 2026
 Capstone Track: Option A — Intelligent Document Compliance Pipeline (Enterprise-Enhanced)
 Audience: Technical assessors, data engineering practitioners, programme faculty
 Demo Day Format: 10 minutes total — 7 min live demo + 3 min Q&A

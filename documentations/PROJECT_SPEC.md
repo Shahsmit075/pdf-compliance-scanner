@@ -1,5 +1,5 @@
 # PDF Compliance Scanner — Complete Project Specification
-**Sigmoid Bangalore | Batch May–Jun 2026 | DevPro Academy**
+**  Bangalore | Batch May–Jun 2026 | DevPro Academy**
 **Team: Shahsmit075 × ArpitMishra2**
 **Capstone Option A — Intelligent Document Compliance Pipeline (Enterprise-Enhanced)**
 

@@ -1,6 +1,3 @@
-# GenAI for Data Engineering — Capstone Project Enhancement Specification
-**Sigmoid Bangalore | Batch May–Jun 2026 | DevPro Academy**
-
 ---
 
 ## Context
